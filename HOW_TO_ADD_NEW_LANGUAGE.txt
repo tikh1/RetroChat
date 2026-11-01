@@ -1,0 +1,98 @@
+================================================================================
+           RETROCHAT - HOW TO ADD A NEW LANGUAGE / YENİ DİL EKLEME REHBERİ
+================================================================================
+
+[ENGLISH]
+Welcome! You can easily translate RetroChat into ANY language using this guide.
+RetroChat automatically scans this folder (.minecraft/config/retrochat/lang/)
+for any ".json" files. When you add a new file here, it will immediately appear
+in the in-game RetroChat Settings!
+
+--------------------------------------------------------------------------------
+STEP 1: Copy the English JSON template below.
+STEP 2: Translate the values into your target language.
+STEP 3: Save the translated content as a JSON file in this folder:
+        .minecraft/config/retrochat/lang/<language_code>.json
+        (Example: fr_fr.json for French, es_es.json for Spanish, ru_ru.json for Russian)
+STEP 4: Launch Minecraft! Your language will be detected automatically or selectable
+        in the RetroChat Settings menu!
+--------------------------------------------------------------------------------
+
+================================================================================
+TRANSLATION TEMPLATE:
+================================================================================
+
+Translate ONLY the values (the text on the right side of the colon).
+DO NOT change the keys (the words on the left).
+Keep punctuation and placeholders intact.
+Ensure the output is valid JSON.
+
+Target Language: [INSERT YOUR TARGET LANGUAGE HERE, e.g. French / Spanish / Russian]
+Language Name: [INSERT NATIVE LANGUAGE NAME, e.g. Français / Español / Русский]
+Language Code: [INSERT MINECRAFT CODE, e.g. fr_fr / es_es / ru_ru]
+
+English JSON to translate:
+{
+  "language_code": "en_us",
+  "language_name": "English",
+  "config.title": "RetroChat Configuration",
+  "config.hide_dms": "Hide DMs in Vanilla Chat",
+  "config.sound": "Sound Notification",
+  "config.volume": "Volume",
+  "config.ui_scale": "UI Scale",
+  "config.width": "Width",
+  "config.height": "Height",
+  "config.reset": "Reset",
+  "config.timestamps": "Timestamps",
+  "config.player_heads": "Player Heads",
+  "config.language": "Language",
+  "config.language_help": "Open translations folder in file manager",
+  "config.keybind_hint": "Press T or custom key to open chat overlay. Escape to close.",
+  "config.player_to_block": "Player to block...",
+  "config.block": "Block",
+  "config.unblock": "Unblock",
+  "config.blocked_players": "Blocked Players",
+  "config.no_blocked": "No blocked players.",
+  "config.player_list": "Online & Recent Players",
+  "config.no_players": "No other players found.",
+  "config.search_player": "Search player to block/unblock...",
+  "config.live_preview": "LIVE PREVIEW",
+  "config.preview_player": "Preview Player",
+  "config.preview_msg1": "Hey! Real-time scaling test.",
+  "config.preview_msg2": "RetroChat preview is crystal clear!",
+  "config.done": "Done",
+  "chat.type_message": "Type a message...",
+  "chat.no_messages": "No messages yet.",
+  "chat.player_blocked": "Player is blocked.",
+  "chat.you": "You",
+  "sidebar.title": "RetroChat",
+  "sidebar.search": "Search..."
+}
+
+================================================================================
+COMMON MINECRAFT LANGUAGE CODES:
+================================================================================
+- French:         fr_fr.json  ("language_code": "fr_fr", "language_name": "Français")
+- Spanish:        es_es.json  ("language_code": "es_es", "language_name": "Español")
+- Russian:        ru_ru.json  ("language_code": "ru_ru", "language_name": "Русский")
+- Portuguese:     pt_br.json  ("language_code": "pt_br", "language_name": "Português")
+- Italian:        it_it.json  ("language_code": "it_it", "language_name": "Italiano")
+- Polish:         pl_pl.json  ("language_code": "pl_pl", "language_name": "Polski")
+- Dutch:          nl_nl.json  ("language_code": "nl_nl", "language_name": "Nederlands")
+- Japanese:       ja_jp.json  ("language_code": "ja_jp", "language_name": "日本語")
+- Chinese:        zh_cn.json  ("language_code": "zh_cn", "language_name": "简体中文")
+- Korean:         ko_kr.json  ("language_code": "ko_kr", "language_name": "한국어")
+- Turkish:        tr_tr.json  ("language_code": "tr_tr", "language_name": "Türkçe")
+- German:         de_de.json  ("language_code": "de_de", "language_name": "Deutsch")
+- English:        en_us.json  ("language_code": "en_us", "language_name": "English")
+
+================================================================================
+[TÜRKÇE] YENİ DİL NASIL EKLENİR?
+================================================================================
+1. Yukarıdaki İngilizce JSON şablonunu kopyalayın.
+2. Değerleri hedef dilinize çevirin.
+3. Yeni bir metin dosyası açıp içine yapıştırın ve dosya adını <dil_kodu>.json
+   olarak bu klasöre kaydedin (.minecraft/config/retrochat/lang/fr_fr.json).
+4. Oyunu açtığınızda yeni dil otomatik olarak listeye eklenecek ve RetroChat
+   Ayarlar menüsünden seçilebilir olacaktır!
+================================================================================

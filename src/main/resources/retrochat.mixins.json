@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "com.sen.modid.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "ClientPlayNetworkHandlerMixin",
+    "MessageHandlerMixin",
+    "ScreenMixin",
+    "InGameHudMixin",
+    "MouseMixin",
+    "KeyboardMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
