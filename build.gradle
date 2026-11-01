@@ -48,3 +48,11 @@ jar {
         rename { "${it}_${project.base.archivesName.get()}" }
     }
 }
+
+remapJar {
+    archiveFileName = "${project.archives_base_name}-${project.mod_version}-fabric-${project.minecraft_version}.jar"
+}
+
+remapSourcesJar {
+    archiveFileName = "${project.archives_base_name}-${project.mod_version}-fabric-${project.minecraft_version}-sources.jar"
+}
