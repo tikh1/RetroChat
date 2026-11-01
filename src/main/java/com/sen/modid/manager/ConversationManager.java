@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import com.sen.modid.config.RetroChatConfig;
 import com.sen.modid.model.Conversation;
 import com.sen.modid.model.DirectMessage;
+import com.sen.modid.ui.RetroChatOverlay;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ServerInfo;
@@ -68,6 +69,10 @@ public class ConversationManager {
         STORAGE_DIR.mkdirs();
     }
 
+    public String getCurrentServerKey() {
+        return currentServerKey;
+    }
+
     public void updateServerScope() {
         MinecraftClient client = MinecraftClient.getInstance();
         String newKey = "default";
@@ -84,6 +89,33 @@ public class ConversationManager {
             saveCurrentScope();
             currentServerKey = newKey;
             loadCurrentScope();
+            restoreServerUiState();
+        }
+    }
+
+    private void restoreServerUiState() {
+        RetroChatConfig config = RetroChatConfig.getInstance();
+        RetroChatConfig.ServerUiState uiState = config.getServerUiState(currentServerKey);
+
+        RetroChatOverlay overlay = RetroChatOverlay.getInstance();
+        if (overlay != null && overlay.getSidebarWidget() != null) {
+            overlay.getSidebarWidget().setCollapsed(uiState.sidebarCollapsed, false);
+        }
+
+        windowStates.clear();
+        for (Map.Entry<String, String> entry : uiState.windowStates.entrySet()) {
+            try {
+                WindowState state = WindowState.valueOf(entry.getValue());
+                if (state != WindowState.CLOSED) {
+                    windowStates.put(entry.getKey().toLowerCase(), state);
+                    if (overlay != null) {
+                        overlay.getOrCreateWindow(entry.getKey());
+                    }
+                    for (ConversationListener listener : listeners) {
+                        listener.onWindowStateChanged(entry.getKey(), state);
+                    }
+                }
+            } catch (Exception ignored) {}
         }
     }
 
@@ -114,9 +146,6 @@ public class ConversationManager {
     }
 
     public synchronized void addLocalOutgoingMessage(String targetName, UUID targetUuid, DirectMessage message) {
-        if (targetName != null && RetroChatConfig.getInstance().isPlayerBlocked(targetName)) {
-            return;
-        }
         if (targetName != null && message != null && message.getContent() != null) {
             pendingOutgoings.add(new PendingOutgoing(targetName, message.getContent(), System.currentTimeMillis()));
         }
@@ -196,7 +225,12 @@ public class ConversationManager {
     public void setWindowState(String playerName, WindowState state) {
         if (playerName == null) return;
         String key = playerName.toLowerCase();
-        windowStates.put(key, state);
+        if (state == WindowState.CLOSED) {
+            windowStates.remove(key);
+        } else {
+            windowStates.put(key, state);
+        }
+        RetroChatConfig.getInstance().setServerWindowState(currentServerKey, playerName, state.name());
         if (state == WindowState.OPEN) {
             markAsRead(playerName);
         }
@@ -325,5 +359,13 @@ public class ConversationManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public int getTotalUnreadCount() {
+        int total = 0;
+        for (Conversation c : conversations.values()) {
+            total += c.getUnreadCount();
+        }
+        return total;
     }
 }

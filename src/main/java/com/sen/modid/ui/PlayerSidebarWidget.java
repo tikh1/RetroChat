@@ -1,5 +1,7 @@
 package com.sen.modid.ui;
 
+import com.sen.modid.config.RetroChatConfig;
+
 import com.sen.modid.lang.LanguageManager;
 import com.sen.modid.manager.ConversationManager;
 import com.sen.modid.model.Conversation;
@@ -80,10 +82,16 @@ public class PlayerSidebarWidget {
         return collapsed;
     }
 
-    public void setCollapsed(boolean collapsed) {
+    public void setCollapsed(boolean collapsed) { setCollapsed(collapsed, true); }
+
+    public void setCollapsed(boolean collapsed, boolean saveConfig) {
         this.collapsed = collapsed;
         if (searchField != null) {
             searchField.setFocused(false);
+        }
+        if (saveConfig) {
+            String scope = ConversationManager.getInstance().getCurrentServerKey();
+            RetroChatConfig.getInstance().setServerSidebarCollapsed(scope, collapsed);
         }
     }
 
@@ -406,3 +414,5 @@ public class PlayerSidebarWidget {
         }
     }
 }
+
+
