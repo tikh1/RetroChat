@@ -3,13 +3,13 @@ package com.sen.modid.ui;
 import com.sen.modid.lang.LanguageManager;
 import com.sen.modid.manager.ConversationManager;
 import com.sen.modid.model.Conversation;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.client.util.SkinTextures;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.network.chat.Component;
 
 import java.util.*;
 
@@ -23,7 +23,7 @@ public class PlayerSidebarWidget {
 
     private boolean collapsed = false;
     private boolean isDraggingScrollbar = false;
-    private TextFieldWidget searchField;
+    private EditBox searchField;
     private String filterQuery = "";
     private int scrollOffset = 0;
     private int maxScroll = 0;
@@ -41,15 +41,15 @@ public class PlayerSidebarWidget {
     }
 
     private void initSearchField() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        TextRenderer tr = client.textRenderer;
+        Minecraft client = Minecraft.getInstance();
+        Font font = client.font;
 
-        searchField = new TextFieldWidget(tr, 0, 0, SIDEBAR_WIDTH - 8, SEARCH_HEIGHT, Text.literal(""));
-        searchField.setPlaceholder(Text.literal(LanguageManager.get("sidebar.search")));
-        searchField.setDrawsBackground(true);
+        searchField = new EditBox(font, 0, 0, SIDEBAR_WIDTH - 8, SEARCH_HEIGHT, Component.literal(""));
+        searchField.setHint(Component.literal(LanguageManager.get("sidebar.search")));
+        searchField.setBordered(true);
         searchField.setMaxLength(32);
-        searchField.setFocusUnlocked(true);
-        searchField.setChangedListener(query -> {
+        searchField.setCanLoseFocus(true);
+        searchField.setResponder(query -> {
             this.filterQuery = query.trim().toLowerCase();
             this.scrollOffset = 0;
         });
@@ -93,19 +93,19 @@ public class PlayerSidebarWidget {
         }
     }
 
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        TextRenderer tr = client.textRenderer;
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+        Minecraft client = Minecraft.getInstance();
+        Font font = client.font;
 
         if (collapsed) {
-            renderCollapsedTab(context, tr, mouseX, mouseY);
+            renderCollapsedTab(context, font, mouseX, mouseY);
             return;
         }
 
         GuiUtils.drawBeveledBox(context, x, y, width, height, GuiUtils.WINDOW_BG, GuiUtils.WINDOW_BORDER_LIGHT, GuiUtils.WINDOW_BORDER_DARK);
         GuiUtils.drawWindowHeader(context, x + 1, y + 1, width - 2, HEADER_HEIGHT, true);
 
-        context.drawText(tr, LanguageManager.get("sidebar.title"), x + 5, y + 5, 0xFFFFFFFF, true);
+        context.drawString(font, LanguageManager.get("sidebar.title"), x + 5, y + 5, 0xFFFFFFFF, true);
 
         int gearX = x + width - 30;
         int btnY = y + 3;
@@ -122,10 +122,10 @@ public class PlayerSidebarWidget {
 
         int listY = y + HEADER_HEIGHT + SEARCH_HEIGHT + 6;
         int listHeight = height - (HEADER_HEIGHT + SEARCH_HEIGHT + 10);
-        renderPlayerList(context, tr, x + 2, listY, width - 4, listHeight, mouseX, mouseY);
+        renderPlayerList(context, font, x + 2, listY, width - 4, listHeight, mouseX, mouseY);
     }
 
-    private void renderCollapsedTab(DrawContext context, TextRenderer tr, int mouseX, int mouseY) {
+    private void renderCollapsedTab(GuiGraphics context, Font font, int mouseX, int mouseY) {
         boolean hovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
         int bg = hovered ? 0xFF2A5738 : 0xFF183321;
         int topBorder = hovered ? 0xFF438A58 : 0xFF285437;
@@ -144,11 +144,11 @@ public class PlayerSidebarWidget {
             totalUnread += c.getUnreadCount();
         }
         if (totalUnread > 0) {
-            GuiUtils.drawBadge(context, tr, x - 4, y - 4, totalUnread);
+            GuiUtils.drawBadge(context, font, x - 4, y - 4, totalUnread);
         }
     }
 
-    private void renderPlayerList(DrawContext context, TextRenderer tr, int listX, int listY, int listWidth, int listHeight, int mouseX, int mouseY) {
+    private void renderPlayerList(GuiGraphics context, Font font, int listX, int listY, int listWidth, int listHeight, int mouseX, int mouseY) {
         GuiUtils.drawBeveledBox(context, listX, listY, listWidth, listHeight, GuiUtils.INNER_BOX_BG, GuiUtils.INNER_BOX_LIGHT, GuiUtils.INNER_BOX_DARK);
 
         List<PlayerEntryData> entries = getSortedPlayerEntries();
@@ -178,12 +178,12 @@ public class PlayerSidebarWidget {
 
                 int nameColor = entry.isOnline ? 0xFFFFFFFF : 0xFF8FA395;
                 int maxNameWidth = maxScroll > 0 ? (contentWidth - 40) : (listWidth - 45);
-                String trimmedName = tr.trimToWidth(entry.playerName, Math.max(10, maxNameWidth));
-                context.drawText(tr, trimmedName, listX + 18, currentY + 5, nameColor, true);
+                String trimmedName = font.plainSubstrByWidth(entry.playerName, Math.max(10, maxNameWidth));
+                context.drawString(font, trimmedName, listX + 18, currentY + 5, nameColor, true);
 
                 if (entry.unreadCount > 0) {
                     int badgeX = listX + contentWidth - 20;
-                    GuiUtils.drawBadge(context, tr, badgeX, currentY + 4, entry.unreadCount);
+                    GuiUtils.drawBadge(context, font, badgeX, currentY + 4, entry.unreadCount);
                 }
             }
             currentY += ENTRY_HEIGHT;
@@ -199,7 +199,7 @@ public class PlayerSidebarWidget {
             int thumbY = trackY + (int) ((float) scrollOffset / maxScroll * (trackHeight - thumbHeight));
 
             context.fill(trackX, trackY, trackX + scrollbarWidth, trackY + trackHeight, 0x60000000);
-            context.drawBorder(trackX, trackY, scrollbarWidth, trackHeight, 0x25FFFFFF);
+            context.renderOutline(trackX, trackY, scrollbarWidth, trackHeight, 0x25FFFFFF);
 
             boolean hoveredThumb = mouseX >= trackX - 1 && mouseX <= trackX + scrollbarWidth + 1 && mouseY >= thumbY && mouseY <= thumbY + thumbHeight;
             int thumbBg = (isDraggingScrollbar || hoveredThumb) ? GuiUtils.ORANGE_ACCENT : 0xFF2A5738;
@@ -211,7 +211,7 @@ public class PlayerSidebarWidget {
     }
 
     private List<PlayerEntryData> getSortedPlayerEntries() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         ConversationManager cm = ConversationManager.getInstance();
         com.sen.modid.config.RetroChatConfig config = com.sen.modid.config.RetroChatConfig.getInstance();
 
@@ -223,19 +223,19 @@ public class PlayerSidebarWidget {
             if (config.isPlayerBlocked(name)) continue;
             if (!filterQuery.isEmpty() && !name.toLowerCase().contains(filterQuery)) continue;
 
-            PlayerListEntry ple = (client.getNetworkHandler() != null) ? client.getNetworkHandler().getPlayerListEntry(name) : null;
+            PlayerInfo ple = (client.getConnection() != null) ? client.getConnection().getPlayerInfo(name) : null;
             boolean online = ple != null;
-            SkinTextures skin = (ple != null && ple.getSkinTextures() != null) ? ple.getSkinTextures() : GuiUtils.getPlayerSkin(conv.getPlayerUuid(), name);
+            PlayerSkin skin = (ple != null && ple.getSkin() != null) ? ple.getSkin() : GuiUtils.getPlayerSkin(conv.getPlayerUuid(), name);
 
             entryMap.put(name.toLowerCase(), new PlayerEntryData(name, conv.getPlayerUuid(), skin, online, conv.getUnreadCount(), conv.getLastMessageTimestamp()));
         }
 
         // remaining online players
-        if (client.getNetworkHandler() != null) {
-            List<PlayerListEntry> onlineList = new ArrayList<>(client.getNetworkHandler().getPlayerList());
+        if (client.getConnection() != null) {
+            List<PlayerInfo> onlineList = new ArrayList<>(client.getConnection().getOnlinePlayers());
             onlineList.sort(Comparator.comparing(a -> a.getProfile().getName().toLowerCase()));
 
-            for (PlayerListEntry ple : onlineList) {
+            for (PlayerInfo ple : onlineList) {
                 String name = ple.getProfile().getName();
                 if (client.player != null && name.equalsIgnoreCase(client.player.getName().getString())) {
                     continue; // skip self
@@ -244,7 +244,7 @@ public class PlayerSidebarWidget {
                 if (!filterQuery.isEmpty() && !name.toLowerCase().contains(filterQuery)) continue;
 
                 if (!entryMap.containsKey(name.toLowerCase())) {
-                    entryMap.put(name.toLowerCase(), new PlayerEntryData(name, ple.getProfile().getId(), ple.getSkinTextures(), true, 0, 0));
+                    entryMap.put(name.toLowerCase(), new PlayerEntryData(name, ple.getProfile().getId(), ple.getSkin(), true, 0, 0));
                 }
             }
         }
@@ -391,12 +391,12 @@ public class PlayerSidebarWidget {
     private static class PlayerEntryData {
         final String playerName;
         final UUID playerUuid;
-        final SkinTextures skinTextures;
+        final PlayerSkin skinTextures;
         final boolean isOnline;
         final int unreadCount;
         final long lastMessageTimestamp;
 
-        PlayerEntryData(String playerName, UUID playerUuid, SkinTextures skinTextures, boolean isOnline, int unreadCount, long lastMessageTimestamp) {
+        PlayerEntryData(String playerName, UUID playerUuid, PlayerSkin skinTextures, boolean isOnline, int unreadCount, long lastMessageTimestamp) {
             this.playerName = playerName;
             this.playerUuid = playerUuid;
             this.skinTextures = skinTextures;

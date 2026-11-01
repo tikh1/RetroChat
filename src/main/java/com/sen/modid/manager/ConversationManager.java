@@ -6,11 +6,11 @@ import com.google.gson.reflect.TypeToken;
 import com.sen.modid.config.RetroChatConfig;
 import com.sen.modid.model.Conversation;
 import com.sen.modid.model.DirectMessage;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ServerInfo;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.sounds.SoundEvents;
+import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.File;
 import java.io.FileReader;
@@ -21,7 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ConversationManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final File STORAGE_DIR = new File(FabricLoader.getInstance().getGameDir().toFile(), "retrochat/history");
+    private static final File STORAGE_DIR = new File(FMLPaths.GAMEDIR.get().toFile(), "retrochat/history");
     private static final long MESSAGE_RETENTION_MS = 30L * 24 * 60 * 60 * 1000L;
 
     private static ConversationManager instance;
@@ -69,14 +69,14 @@ public class ConversationManager {
     }
 
     public void updateServerScope() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         String newKey = "default";
-        if (client.isInSingleplayer() && client.getServer() != null) {
-            newKey = "sp_" + client.getServer().getSaveProperties().getLevelName();
+        if (client.hasSingleplayerServer() && client.getSingleplayerServer() != null) {
+            newKey = "sp_" + client.getSingleplayerServer().getWorldData().getLevelName();
         } else {
-            ServerInfo server = client.getCurrentServerEntry();
-            if (server != null && server.address != null) {
-                newKey = "mp_" + server.address.replace(':', '_').replace('/', '_');
+            ServerData server = client.getCurrentServer();
+            if (server != null && server.ip != null) {
+                newKey = "mp_" + server.ip.replace(':', '_').replace('/', '_');
             }
         }
 
@@ -177,12 +177,12 @@ public class ConversationManager {
     }
 
     public void playNotificationSound() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         if (client != null && client.getSoundManager() != null) {
             float volume = RetroChatConfig.getInstance().soundVolume;
             if (volume > 0.0f) {
                 client.getSoundManager().play(
-                    PositionedSoundInstance.master(SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 1.0f, volume)
+                    SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_BELL.value(), 1.0f, volume)
                 );
             }
         }

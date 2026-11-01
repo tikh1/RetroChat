@@ -1,0 +1,25 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+
+[[mods]]
+modId="retrochat"
+version="1.0.0"
+displayName="RetroChat"
+logoFile="assets/retrochat/icon.png"
+authors="Sen"
+description="Retro 2010s-style private messaging windows and collapsible player sidebar for Minecraft."
+
+[[dependencies.retrochat]]
+    modId="neoforge"
+    type="required"
+    versionRange="[21.1.0,)"
+    ordering="NONE"
+    side="CLIENT"
+
+[[dependencies.retrochat]]
+    modId="minecraft"
+    type="required"
+    versionRange="[1.21.1,1.21.2)"
+    ordering="NONE"
+    side="CLIENT"

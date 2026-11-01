@@ -1,63 +1,72 @@
 package com.sen.modid;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.sen.modid.config.RetroChatConfig;
 import com.sen.modid.manager.ConversationManager;
 import com.sen.modid.ui.RetroChatOverlay;
 import com.sen.modid.ui.RetroChatOverlayScreen;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import org.lwjgl.glfw.GLFW;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RetroChatClient implements ClientModInitializer {
+@Mod(RetroChatClient.MOD_ID)
+public class RetroChatClient {
     public static final String MOD_ID = "retrochat";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    private static KeyBinding toggleChatKey;
+    private static KeyMapping toggleChatKey;
     private static Screen lastScreen = null;
 
-    public static KeyBinding getToggleChatKey() {
+    public static KeyMapping getToggleChatKey() {
         return toggleChatKey;
     }
 
-    @Override
-    public void onInitializeClient() {
+    public RetroChatClient(IEventBus modEventBus) {
         LOGGER.info("[RetroChat] Initializing client mod...");
 
         RetroChatConfig.getInstance();
         com.sen.modid.lang.LanguageManager.getInstance();
         ConversationManager.getInstance();
 
-        toggleChatKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+        modEventBus.addListener(this::registerKeyMappings);
+        NeoForge.EVENT_BUS.addListener(this::onClientTick);
+        NeoForge.EVENT_BUS.register(new RetroChatClientEventHandler());
+
+        LOGGER.info("[RetroChat] Initialized successfully on NeoForge 1.21.1!");
+    }
+
+    private void registerKeyMappings(RegisterKeyMappingsEvent event) {
+        toggleChatKey = new KeyMapping(
             "key.retrochat.toggle",
-            InputUtil.Type.KEYSYM,
-            InputUtil.UNKNOWN_KEY.getCode(),
+            InputConstants.Type.KEYSYM,
+            InputConstants.UNKNOWN.getValue(),
             "category.retrochat"
-        ));
+        );
+        event.register(toggleChatKey);
+    }
 
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            Screen currentScreen = client.currentScreen;
-            if (lastScreen != null && currentScreen == null) {
-                // minimize unpinned windows when returning to gameplay
-                ConversationManager.getInstance().minimizeUnpinnedWindows();
-                RetroChatOverlay.getInstance().unfocusAll();
+    private void onClientTick(ClientTickEvent.Post event) {
+        Minecraft client = Minecraft.getInstance();
+        Screen currentScreen = client.screen;
+        if (lastScreen != null && currentScreen == null) {
+            ConversationManager.getInstance().minimizeUnpinnedWindows();
+            RetroChatOverlay.getInstance().unfocusAll();
+        }
+        lastScreen = currentScreen;
+
+        while (toggleChatKey != null && toggleChatKey.consumeClick()) {
+            if (client.screen == null) {
+                client.setScreen(new RetroChatOverlayScreen());
+            } else if (client.screen instanceof RetroChatOverlayScreen) {
+                client.setScreen(null);
             }
-            lastScreen = currentScreen;
-
-            while (toggleChatKey.wasPressed()) {
-                if (client.currentScreen == null) {
-                    client.setScreen(new RetroChatOverlayScreen());
-                } else if (client.currentScreen instanceof RetroChatOverlayScreen) {
-                    client.setScreen(null);
-                }
-            }
-        });
-
-        LOGGER.info("[RetroChat] Initialized successfully on Fabric 1.21.4!");
+        }
     }
 }

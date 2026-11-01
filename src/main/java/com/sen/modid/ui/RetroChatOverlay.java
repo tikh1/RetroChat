@@ -2,8 +2,8 @@ package com.sen.modid.ui;
 
 import com.sen.modid.config.RetroChatConfig;
 import com.sen.modid.manager.ConversationManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.*;
 
@@ -54,23 +54,23 @@ public class RetroChatOverlay {
     }
 
     public void openConfigScreen() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         if (client != null) {
-            client.setScreen(new RetroChatConfigScreen(client.currentScreen));
+            client.setScreen(new RetroChatConfigScreen(client.screen));
         }
     }
 
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.options.hudHidden) return;
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.options.hideGui) return;
 
         ConversationManager.getInstance().updateServerScope();
 
         float scale = RetroChatConfig.getInstance().uiScale;
         if (scale <= 0.1f) scale = 1.0f;
 
-        int rawScreenWidth = client.getWindow().getScaledWidth();
-        int rawScreenHeight = client.getWindow().getScaledHeight();
+        int rawScreenWidth = client.getWindow().getGuiScaledWidth();
+        int rawScreenHeight = client.getWindow().getGuiScaledHeight();
 
         int scaledWidth = (int) (rawScreenWidth / scale);
         int scaledHeight = (int) (rawScreenHeight / scale);
@@ -78,18 +78,18 @@ public class RetroChatOverlay {
         int scaledMouseX = (int) (mouseX / scale);
         int scaledMouseY = (int) (mouseY / scale);
 
-        context.getMatrices().push();
-        context.getMatrices().scale(scale, scale, 1.0f);
+        context.pose().pushPose();
+        context.pose().scale(scale, scale, 1.0f);
 
         sidebarWidget.updatePosition(scaledWidth, scaledHeight);
         sidebarWidget.render(context, scaledMouseX, scaledMouseY, delta);
 
         layoutAndRenderWindows(context, scaledWidth, scaledHeight, scaledMouseX, scaledMouseY, delta);
 
-        context.getMatrices().pop();
+        context.pose().popPose();
     }
 
-    private void layoutAndRenderWindows(DrawContext context, int screenWidth, int screenHeight, int mouseX, int mouseY, float delta) {
+    private void layoutAndRenderWindows(GuiGraphics context, int screenWidth, int screenHeight, int mouseX, int mouseY, float delta) {
         ConversationManager cm = ConversationManager.getInstance();
         Map<String, ConversationManager.WindowState> activeStates = cm.getActiveWindowStates();
 

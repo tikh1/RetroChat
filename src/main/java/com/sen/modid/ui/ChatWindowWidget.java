@@ -6,14 +6,14 @@ import com.sen.modid.lang.LanguageManager;
 import com.sen.modid.manager.ConversationManager;
 import com.sen.modid.model.Conversation;
 import com.sen.modid.model.DirectMessage;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.client.util.SkinTextures;
-import net.minecraft.text.StringVisitable;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.FormattedCharSequence;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public class ChatWindowWidget {
     private int height;
     private int currentTabWidth = 120;
 
-    private TextFieldWidget inputField;
+    private EditBox inputField;
     private int scrollOffset = 0;
     private int maxScroll = 0;
 
@@ -57,14 +57,14 @@ public class ChatWindowWidget {
     }
 
     private void initInputField() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        TextRenderer textRenderer = client.textRenderer;
+        Minecraft client = Minecraft.getInstance();
+        Font font = client.font;
 
-        inputField = new TextFieldWidget(textRenderer, x + 4, y + height - 32, width - 8, INPUT_HEIGHT, Text.literal(""));
+        inputField = new EditBox(font, x + 4, y + height - 32, width - 8, INPUT_HEIGHT, Component.literal(""));
         inputField.setMaxLength(MAX_CHARACTERS);
-        inputField.setPlaceholder(Text.literal(LanguageManager.get("chat.type_message")));
-        inputField.setDrawsBackground(true);
-        inputField.setFocusUnlocked(true);
+        inputField.setHint(Component.literal(LanguageManager.get("chat.type_message")));
+        inputField.setBordered(true);
+        inputField.setCanLoseFocus(true);
     }
 
     public void setPosition(int x, int y) {
@@ -91,22 +91,22 @@ public class ChatWindowWidget {
         return this.currentTabWidth;
     }
 
-    public SkinTextures getSkinTextures() {
+    public PlayerSkin getSkinTextures() {
         return GuiUtils.getPlayerSkin(playerUuid, playerName);
     }
 
-    public SkinTextures getMySkinTextures() {
-        MinecraftClient client = MinecraftClient.getInstance();
+    public PlayerSkin getMySkinTextures() {
+        Minecraft client = Minecraft.getInstance();
         if (client.player != null) {
-            return client.player.getSkinTextures();
+            return client.player.getSkin();
         }
-        if (client.getSkinProvider() != null && client.getSession() != null) {
-            return client.getSkinProvider().getSkinTextures(client.getGameProfile());
+        if (client.getSkinManager() != null && client.getUser() != null) {
+            return client.getSkinManager().getInsecureSkin(client.getGameProfile());
         }
         return null;
     }
 
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         ConversationManager cm = ConversationManager.getInstance();
         ConversationManager.WindowState state = cm.getWindowState(playerName);
         if (state == ConversationManager.WindowState.CLOSED) return;
@@ -115,12 +115,12 @@ public class ChatWindowWidget {
             cm.markAsRead(playerName);
         }
 
-        MinecraftClient client = MinecraftClient.getInstance();
-        TextRenderer tr = client.textRenderer;
-        SkinTextures skin = getSkinTextures();
+        Minecraft client = Minecraft.getInstance();
+        Font font = client.font;
+        PlayerSkin skin = getSkinTextures();
 
         if (state == ConversationManager.WindowState.MINIMIZED) {
-            renderMinimizedTab(context, tr, skin, mouseX, mouseY, currentTabWidth);
+            renderMinimizedTab(context, font, skin, mouseX, mouseY, currentTabWidth);
             return;
         }
 
@@ -132,8 +132,8 @@ public class ChatWindowWidget {
 
         String displayName = isBlocked ? playerName + " [X]" : playerName;
         int nameColor = isBlocked ? 0xFFFF7777 : 0xFFFFFFFF;
-        String trimmedName = tr.trimToWidth(displayName, width - 65);
-        context.drawText(tr, trimmedName, x + 18, y + 5, nameColor, true);
+        String trimmedName = font.plainSubstrByWidth(displayName, width - 65);
+        context.drawString(font, trimmedName, x + 18, y + 5, nameColor, true);
 
         int btnY = y + 3;
         int closeBtnX = x + width - 15;
@@ -156,37 +156,37 @@ public class ChatWindowWidget {
 
         GuiUtils.drawBeveledBox(context, msgAreaX, msgAreaY, msgAreaWidth, msgAreaHeight, GuiUtils.INNER_BOX_BG, GuiUtils.INNER_BOX_LIGHT, GuiUtils.INNER_BOX_DARK);
 
-        renderMessages(context, tr, msgAreaX + 2, msgAreaY + 2, msgAreaWidth - 4, msgAreaHeight - 4);
+        renderMessages(context, font, msgAreaX + 2, msgAreaY + 2, msgAreaWidth - 4, msgAreaHeight - 4);
 
         if (inputField != null) {
             if (isBlocked) {
                 inputField.setEditable(false);
-                inputField.setText("");
-                inputField.setPlaceholder(Text.literal(LanguageManager.get("chat.player_blocked")).styled(s -> s.withColor(0xFFFF7777)));
+                inputField.setValue("");
+                inputField.setHint(Component.literal(LanguageManager.get("chat.player_blocked")).withStyle(s -> s.withColor(0xFFFF7777)));
             } else {
                 inputField.setEditable(true);
-                inputField.setPlaceholder(Text.literal(LanguageManager.get("chat.type_message")));
+                inputField.setHint(Component.literal(LanguageManager.get("chat.type_message")));
             }
             inputField.render(context, mouseX, mouseY, delta);
         }
 
         int counterY = y + height - 12;
-        int currentLength = inputField != null ? inputField.getText().length() : 0;
+        int currentLength = inputField != null ? inputField.getValue().length() : 0;
         String counterText = currentLength + " / " + MAX_CHARACTERS;
-        int counterWidth = tr.getWidth(counterText);
+        int counterWidth = font.width(counterText);
         int counterColor = currentLength >= MAX_CHARACTERS ? 0xFFEF4444 : (currentLength >= 230 ? GuiUtils.ORANGE_ACCENT : 0xFF7D9C86);
-        context.drawText(tr, counterText, x + width - counterWidth - 6, counterY, counterColor, false);
+        context.drawString(font, counterText, x + width - counterWidth - 6, counterY, counterColor, false);
     }
 
-    public void renderAsTab(DrawContext context, int mouseX, int mouseY, float delta, int actualTabWidth) {
+    public void renderAsTab(GuiGraphics context, int mouseX, int mouseY, float delta, int actualTabWidth) {
         this.currentTabWidth = actualTabWidth;
-        MinecraftClient client = MinecraftClient.getInstance();
-        TextRenderer tr = client.textRenderer;
-        SkinTextures skin = getSkinTextures();
-        renderMinimizedTab(context, tr, skin, mouseX, mouseY, actualTabWidth);
+        Minecraft client = Minecraft.getInstance();
+        Font font = client.font;
+        PlayerSkin skin = getSkinTextures();
+        renderMinimizedTab(context, font, skin, mouseX, mouseY, actualTabWidth);
     }
 
-    private void renderMinimizedTab(DrawContext context, TextRenderer tr, SkinTextures skin, int mouseX, int mouseY, int tabWidth) {
+    private void renderMinimizedTab(GuiGraphics context, Font font, PlayerSkin skin, int mouseX, int mouseY, int tabWidth) {
         this.currentTabWidth = tabWidth;
         int tabHeight = HEADER_HEIGHT;
 
@@ -200,11 +200,11 @@ public class ChatWindowWidget {
             GuiUtils.drawPlayerHead(context, skin, x + 4, y + 4, 10);
 
             int nameWidth = tabWidth - (unread > 0 ? 50 : 34);
-            String trimmedName = tr.trimToWidth(playerName, Math.max(10, nameWidth));
-            context.drawText(tr, trimmedName, x + 18, y + 5, 0xFFFFFFFF, true);
+            String trimmedName = font.plainSubstrByWidth(playerName, Math.max(10, nameWidth));
+            context.drawString(font, trimmedName, x + 18, y + 5, 0xFFFFFFFF, true);
 
             if (unread > 0) {
-                GuiUtils.drawBadge(context, tr, x + tabWidth - 36, y + 4, unread);
+                GuiUtils.drawBadge(context, font, x + tabWidth - 36, y + 4, unread);
             }
 
             int closeBtnX = x + tabWidth - 15;
@@ -215,10 +215,10 @@ public class ChatWindowWidget {
             GuiUtils.drawPlayerHead(context, skin, x + 3, y + 4, 10);
 
             if (unread > 0) {
-                GuiUtils.drawBadge(context, tr, x + 16, y + 4, unread);
+                GuiUtils.drawBadge(context, font, x + 16, y + 4, unread);
             } else {
-                String trimmedName = tr.trimToWidth(playerName, tabWidth - 30);
-                context.drawText(tr, trimmedName, x + 16, y + 5, 0xFFFFFFFF, true);
+                String trimmedName = font.plainSubstrByWidth(playerName, tabWidth - 30);
+                context.drawString(font, trimmedName, x + 16, y + 5, 0xFFFFFFFF, true);
             }
 
             int closeBtnX = x + tabWidth - 14;
@@ -230,19 +230,19 @@ public class ChatWindowWidget {
             GuiUtils.drawPlayerHead(context, skin, headX, y + 4, 10);
 
             if (unread > 0) {
-                GuiUtils.drawBadge(context, tr, x + tabWidth - 14, y + 2, unread);
+                GuiUtils.drawBadge(context, font, x + tabWidth - 14, y + 2, unread);
             }
 
             if (hovered) {
-                context.drawTooltip(tr, Text.literal(playerName + (unread > 0 ? " (" + unread + ")" : "")), mouseX, mouseY);
+                context.renderTooltip(font, Component.literal(playerName + (unread > 0 ? " (" + unread + ")" : "")), mouseX, mouseY);
             }
         }
     }
 
-    private void renderMessages(DrawContext context, TextRenderer tr, int areaX, int areaY, int areaWidth, int areaHeight) {
+    private void renderMessages(GuiGraphics context, Font font, int areaX, int areaY, int areaWidth, int areaHeight) {
         Conversation conv = ConversationManager.getInstance().getConversation(playerName);
         if (conv == null || conv.getMessages().isEmpty()) {
-            context.drawText(tr, LanguageManager.get("chat.no_messages"), areaX + 4, areaY + 6, 0xFF5D7866, false);
+            context.drawString(font, LanguageManager.get("chat.no_messages"), areaX + 4, areaY + 6, 0xFF5D7866, false);
             return;
         }
 
@@ -250,36 +250,36 @@ public class ChatWindowWidget {
         List<MessageLine> renderedLines = new ArrayList<>();
         boolean showTimestamps = RetroChatConfig.getInstance().showTimestamps;
         boolean showPlayerHeads = RetroChatConfig.getInstance().showPlayerHeads;
-        SkinTextures incomingSkin = getSkinTextures();
-        SkinTextures mySkin = getMySkinTextures();
+        PlayerSkin incomingSkin = getSkinTextures();
+        PlayerSkin mySkin = getMySkinTextures();
 
         int availWidth = Math.max(10, areaWidth - 8);
 
         for (DirectMessage msg : messages) {
-            net.minecraft.text.MutableText fullMsg = Text.empty();
+            MutableComponent fullMsg = Component.empty();
             int timeWidth = 0;
             if (showTimestamps) {
                 String timeStr = "[" + TIME_FORMAT.format(new Date(msg.getTimestamp())) + "] ";
-                fullMsg.append(Text.literal(timeStr).styled(s -> s.withColor(0x5C7864)));
-                timeWidth = tr.getWidth(timeStr);
+                fullMsg.append(Component.literal(timeStr).withStyle(s -> s.withColor(0x5C7864)));
+                timeWidth = font.width(timeStr);
             }
 
             if (showPlayerHeads) {
                 // spacing for player head
-                fullMsg.append(Text.literal("   "));
+                fullMsg.append(Component.literal("   "));
             }
 
-            SkinTextures skin = msg.isIncoming() ? incomingSkin : mySkin;
+            PlayerSkin skin = msg.isIncoming() ? incomingSkin : mySkin;
             if (msg.isIncoming()) {
-                fullMsg.append(Text.literal(playerName + ": ").styled(s -> s.withColor(0x4ADE80)));
-                fullMsg.append(Text.literal(msg.getContent()).styled(s -> s.withColor(0xE2E8F0)));
+                fullMsg.append(Component.literal(playerName + ": ").withStyle(s -> s.withColor(0x4ADE80)));
+                fullMsg.append(Component.literal(msg.getContent()).withStyle(s -> s.withColor(0xE2E8F0)));
             } else {
                 String youStr = LanguageManager.get("chat.you") + ": ";
-                fullMsg.append(Text.literal(youStr).styled(s -> s.withColor(0xF97316)));
-                fullMsg.append(Text.literal(msg.getContent()).styled(s -> s.withColor(0xFCD34D)));
+                fullMsg.append(Component.literal(youStr).withStyle(s -> s.withColor(0xF97316)));
+                fullMsg.append(Component.literal(msg.getContent()).withStyle(s -> s.withColor(0xFCD34D)));
             }
 
-            List<net.minecraft.text.OrderedText> wrapped = tr.wrapLines(fullMsg, availWidth);
+            List<FormattedCharSequence> wrapped = font.split(fullMsg, availWidth);
             for (int i = 0; i < wrapped.size(); i++) {
                 if (i == 0 && showPlayerHeads) {
                     renderedLines.add(new MessageLine(wrapped.get(i), skin, timeWidth + 2));
@@ -301,7 +301,7 @@ public class ChatWindowWidget {
                 if (line.headSkin != null) {
                     GuiUtils.drawPlayerHead(context, line.headSkin, areaX + 4 + line.headXOffset, currentY, 8);
                 }
-                context.drawText(tr, line.text, areaX + 4, currentY, 0xFFFFFFFF, true);
+                context.drawString(font, line.text, areaX + 4, currentY, 0xFFFFFFFF, true);
             }
             currentY += 10;
         }
@@ -317,11 +317,11 @@ public class ChatWindowWidget {
     }
 
     private static class MessageLine {
-        final net.minecraft.text.OrderedText text;
-        final SkinTextures headSkin;
+        final FormattedCharSequence text;
+        final PlayerSkin headSkin;
         final int headXOffset;
 
-        MessageLine(net.minecraft.text.OrderedText text, SkinTextures headSkin, int headXOffset) {
+        MessageLine(FormattedCharSequence text, PlayerSkin headSkin, int headXOffset) {
             this.text = text;
             this.headSkin = headSkin;
             this.headXOffset = headXOffset;
@@ -336,7 +336,7 @@ public class ChatWindowWidget {
         }
         if (this.inputField != null) {
             this.inputField.setFocused(true);
-            this.inputField.setCursorToEnd(false);
+            this.inputField.moveCursorToEnd(false);
         }
     }
 
@@ -459,26 +459,26 @@ public class ChatWindowWidget {
     private void sendMessage() {
         if (inputField == null) return;
         if (RetroChatConfig.getInstance().isPlayerBlocked(playerName)) {
-            MinecraftClient client = MinecraftClient.getInstance();
+            Minecraft client = Minecraft.getInstance();
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§c[RetroChat] " + LanguageManager.get("chat.player_blocked")), false);
+                client.player.displayClientMessage(Component.literal("§c[RetroChat] " + LanguageManager.get("chat.player_blocked")), false);
             }
-            inputField.setText("");
+            inputField.setValue("");
             return;
         }
 
-        String text = inputField.getText().trim();
+        String text = inputField.getValue().trim();
         if (text.isEmpty()) return;
 
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.getNetworkHandler() != null) {
-            client.getNetworkHandler().sendChatCommand("msg " + playerName + " " + text);
+        Minecraft client = Minecraft.getInstance();
+        if (client.getConnection() != null) {
+            client.getConnection().sendCommand("msg " + playerName + " " + text);
 
             DirectMessage dm = new DirectMessage(null, "me", playerUuid, playerName, text, System.currentTimeMillis(), false, true);
             ConversationManager.getInstance().addLocalOutgoingMessage(playerName, playerUuid, dm);
         }
 
-        inputField.setText("");
+        inputField.setValue("");
         scrollOffset = 0;
         focusInput();
     }

@@ -1,18 +1,18 @@
 package com.sen.modid.ui;
 
 import com.sen.modid.RetroChatClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 public class RetroChatOverlayScreen extends Screen {
 
     public RetroChatOverlayScreen() {
-        super(Text.literal("RetroChat Overlay"));
+        super(Component.literal("RetroChat Overlay"));
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
     }
 
@@ -23,7 +23,7 @@ public class RetroChatOverlayScreen extends Screen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         RetroChatOverlay.getInstance().render(context, mouseX, mouseY, delta);
     }
 
@@ -65,12 +65,12 @@ public class RetroChatOverlayScreen extends Screen {
             return true;
         }
 
-        if (RetroChatClient.getToggleChatKey() != null && RetroChatClient.getToggleChatKey().matchesKey(keyCode, scanCode) && !RetroChatOverlay.getInstance().isAnyInputFocused()) {
-            this.close();
+        if (RetroChatClient.getToggleChatKey() != null && RetroChatClient.getToggleChatKey().matches(keyCode, scanCode) && !RetroChatOverlay.getInstance().isAnyInputFocused()) {
+            this.onClose();
             return true;
         }
         if (keyCode == 256) {
-            this.close();
+            this.onClose();
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);

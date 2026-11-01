@@ -2,7 +2,7 @@ package com.sen.modid.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.File;
 import java.io.FileReader;
@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class RetroChatConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final File CONFIG_FILE = new File(FabricLoader.getInstance().getConfigDir().toFile(), "retrochat.json");
+    private static final File CONFIG_FILE = FMLPaths.CONFIGDIR.get().resolve("retrochat.json").toFile();
 
     private static RetroChatConfig instance;
 
