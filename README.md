@@ -12,7 +12,7 @@ RetroChat is available for **Fabric** and **NeoForge** across modern Minecraft 1
 
 | Minecraft Version | Fabric Loader | NeoForge Loader | Branch |
 | :--- | :---: | :---: | :--- |
-| **1.21.4** | ✅ Supported | ✅ Supported | `main` (Fabric) / `neoforge-1.21.4` |
+| **1.21.4** | ✅ Supported | ✅ Supported | `fabric-1.21.4` / `neoforge-1.21.4` |
 | **1.21.3** | ✅ Supported | ✅ Supported | `fabric-1.21.3` / `neoforge-1.21.3` |
 | **1.21.1** | ✅ Supported | ✅ Supported | `fabric-1.21.1` / `neoforge-1.21.1` |
 
