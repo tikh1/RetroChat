@@ -42,6 +42,8 @@ public class ChatWindowWidget {
     private int maxScroll = 0;
 
     private boolean isFocused = false;
+    private final AsciiEmojiPicker emojiPicker = new AsciiEmojiPicker();
+    private boolean emojiPickerOpen = false;
 
     public ChatWindowWidget(String playerName, UUID playerUuid) {
         this.playerName = playerName;
@@ -170,12 +172,33 @@ public class ChatWindowWidget {
             inputField.render(context, mouseX, mouseY, delta);
         }
 
+        int emojiBtnX = x + width - 18;
+        int emojiBtnY = y + height - 14;
+        int emojiBtnW = 14;
+        int emojiBtnH = 11;
+
         int counterY = y + height - 12;
         int currentLength = inputField != null ? inputField.getValue().length() : 0;
         String counterText = currentLength + " / " + MAX_CHARACTERS;
         int counterWidth = font.width(counterText);
         int counterColor = currentLength >= MAX_CHARACTERS ? 0xFFEF4444 : (currentLength >= 230 ? GuiUtils.ORANGE_ACCENT : 0xFF7D9C86);
-        context.drawString(font, counterText, x + width - counterWidth - 6, counterY, counterColor, false);
+
+        int counterX = emojiBtnX - counterWidth - 5;
+        context.drawString(font, counterText, counterX, counterY, counterColor, false);
+
+        boolean emojiHovered = mouseX >= emojiBtnX && mouseX <= emojiBtnX + emojiBtnW && mouseY >= emojiBtnY && mouseY <= emojiBtnY + emojiBtnH;
+        GuiUtils.drawButtonBox(context, emojiBtnX, emojiBtnY, emojiBtnW, emojiBtnH, emojiPickerOpen || emojiHovered);
+        int smileyW = font.width(":)");
+        int smileyColor = (emojiPickerOpen || emojiHovered) ? GuiUtils.ORANGE_ACCENT_HOVER : 0xFFB8D5C0;
+        context.drawString(font, ":)", emojiBtnX + (emojiBtnW - smileyW) / 2, emojiBtnY + 2, smileyColor, false);
+
+        if (emojiPickerOpen) {
+            int panelW = Math.min(width - 8, 175);
+            int panelH = Math.min(height - HEADER_HEIGHT - 36, 125);
+            int panelX = x + width - panelW - 4;
+            int panelY = y + height - 33 - panelH;
+            emojiPicker.render(context, font, mouseX, mouseY, panelX, panelY, panelW, panelH);
+        }
     }
 
     public void renderAsTab(GuiGraphics context, int mouseX, int mouseY, float delta, int actualTabWidth) {
@@ -399,6 +422,37 @@ public class ChatWindowWidget {
                 return true;
             }
 
+            int emojiBtnX = x + width - 18;
+            int emojiBtnY = y + height - 14;
+            int emojiBtnW = 14;
+            int emojiBtnH = 11;
+
+            if (mouseX >= emojiBtnX && mouseX <= emojiBtnX + emojiBtnW && mouseY >= emojiBtnY && mouseY <= emojiBtnY + emojiBtnH) {
+                GuiUtils.playClickSound();
+                emojiPickerOpen = !emojiPickerOpen;
+                return true;
+            }
+
+            if (emojiPickerOpen) {
+                int panelW = Math.min(width - 8, 175);
+                int panelH = Math.min(height - HEADER_HEIGHT - 36, 125);
+                int panelX = x + width - panelW - 4;
+                int panelY = y + height - 33 - panelH;
+                if (mouseX >= panelX && mouseX <= panelX + panelW && mouseY >= panelY && mouseY <= panelY + panelH) {
+                    emojiPicker.mouseClicked(mouseX, mouseY, button, panelX, panelY, panelW, panelH,
+                            emoji -> {
+                                if (inputField != null) {
+                                    inputField.insertText(emoji);
+                                    inputField.setFocused(true);
+                                }
+                            },
+                            () -> emojiPickerOpen = false);
+                    return true;
+                } else {
+                    emojiPickerOpen = false;
+                }
+            }
+
             cm.markAsRead(playerName);
             focusInput();
             if (inputField != null) {
@@ -416,6 +470,16 @@ public class ChatWindowWidget {
         ConversationManager.WindowState state = ConversationManager.getInstance().getWindowState(playerName);
         if (state != ConversationManager.WindowState.OPEN) return false;
 
+        if (emojiPickerOpen) {
+            int panelW = Math.min(width - 8, 175);
+            int panelH = Math.min(height - HEADER_HEIGHT - 36, 125);
+            int panelX = x + width - panelW - 4;
+            int panelY = y + height - 33 - panelH;
+            if (emojiPicker.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount, panelX, panelY, panelW, panelH)) {
+                return true;
+            }
+        }
+
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
             if (maxScroll > 0) {
                 scrollOffset += (int) (verticalAmount * 12);
@@ -430,6 +494,10 @@ public class ChatWindowWidget {
         if (!isFocused || inputField == null) return false;
 
         if (keyCode == 256) {
+            if (emojiPickerOpen) {
+                emojiPickerOpen = false;
+                return true;
+            }
             setFocused(false);
             return false;
         }

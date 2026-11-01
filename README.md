@@ -1,72 +1,75 @@
 # RetroChat
 
-RetroChat is a client-side Minecraft mod that brings classic, 2000s/2010s instant messaging aesthetics to in-game private direct messages (`/msg`, `/tell`, `/w`).
+RetroChat brings retro, 2010s Facebook-style instant direct messaging windows and a collapsible player sidebar to Minecraft with an authentic vanilla look and feel!
 
-It replaces clutter in the vanilla chat box with docked, retro-styled windows, collapsible sidebars, player avatars, and sound notifications.
+It intercepts vanilla private messages (`/msg`, `/tell`, `/w`) at the client packet level, giving you dedicated conversation windows, unread badges, sound notifications, and a rich retro ASCII emoji picker without requiring any server-side plugins or mods.
 
 ---
 
-## Features
+## 🎮 Supported Versions & Branches
 
-- **Docked & Floating Chat Windows**:
-  - Dedicated chat window for each player conversation.
-  - **Pin** windows to keep them visible during gameplay.
+RetroChat is available for **Fabric** and **NeoForge** across modern Minecraft 1.21.x releases:
+
+| Minecraft Version | Fabric Loader | NeoForge Loader | Branch |
+| :--- | :---: | :---: | :--- |
+| **1.21.4** | ✅ Supported | ✅ Supported | `main` (Fabric) / `neoforge-1.21.4` |
+| **1.21.3** | ✅ Supported | ✅ Supported | `fabric-1.21.3` / `neoforge-1.21.3` |
+| **1.21.1** | ✅ Supported | ✅ Supported | `fabric-1.21.1` / `neoforge-1.21.1` |
+
+---
+
+## ✨ Features
+
+- **Retro ASCII Emoji Picker (`[:)]`)**:
+  - Integrated directly to the right of the character counter at the bottom of every chat window.
+  - **56 Handcrafted Emoticons** across 3 categories:
+    - **Classic:** `:)`, `:-)`, `:D`, `:-D`, `;-)`, `:P`, `xD`, `XD`, `<3`, `</3`, `B)`, `8)`, `:3`, `:/`, `:(`, `:'(`, `:O`, `*_*`, `-_-`, `>_<`, `\o/`
+    - **Kaomoji:** `¯\_(ツ)_/¯`, `( ͡° ͜ʖ ͡°)`, `ಠ_ಠ`, `ʕ•ᴥ•ʔ`, `(づ｡◕‿◕｡)づ`, `(>‿◠)✌`, `(ง'̀-'́)ง`, `(▀̿Ĺ̯▀̿ ̿)`, `(•‿•)`, `(•_•)`, `(¬_¬)`, `(｡◕‿◕｡)`, `(⊙_⊙)`, `(•ω•)`, `(T_T)`, `ಥ_ಥ`, `(°ロ°)`, `(=^･^=)`
+    - **Action / Fun:** `(╯°□°)╯︵ ┻━┻`, `┬─┬ノ(º_ºノ)`, `(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧`, `＼(＾O＾)／`, `(づ￣ ³￣)づ`, `(ノಠ益ಠ)ノ`, `¯\(°_o)/¯`, `(*^▽^*)`, `ლ(ಠ益ಠლ)`, `ᕙ(⇀‸↼‶)ᕗ`
+  - Beveled retro popup box with scroll support, click sound feedback, and instant insertion into text.
+
+- **Dockable & Minimized Chat Windows**:
+  - Distinct conversation window for each active player chat.
+  - **Pin** windows to keep them visible while playing.
   - **Minimize** windows into compact tabs docked along the bottom bar.
-  - Unread message counters on minimized tabs.
-  - Live dimension customization (width & height) with real-time visual preview.
+  - Live unread notification counter badges on tabs.
 
 - **Player Sidebar**:
-  - Quick-access sidebar displaying recent conversations and online players.
-  - Real-time search filter.
-  - Online/offline status indicators.
-  - Collapsible into a subtle tab on the right edge of the screen.
+  - Fast-access sidebar on the right side of the screen.
+  - Real-time search filter and online/offline status indicators.
+  - Collapses into a subtle side chevron tab when not in use.
 
-- **Player Management & Privacy**:
-  - Block and unblock players directly from the settings menu.
-  - Block custom usernames by typing them into the search bar.
-  - Automatic suppression of incoming and outgoing messages from blocked players.
-  - Option to hide direct messages from the vanilla chat box.
+- **Per-Server UI State Persistence**:
+  - Automatically remembers your sidebar state (open vs collapsed) and window states (open vs minimized) per server and in singleplayer.
+  - Everything stays right where you left it across sessions.
 
-- **Notifications & Customization**:
-  - Configurable sound alerts on incoming messages.
-  - Toggle player head avatars and message timestamps.
-  - UI scaling support (50% to 150%).
-  - Full **Mod Menu** support with in-game configuration access.
+- **Config Screen & Mod Menu Integration**:
+  - Accessible in-game via **ModMenu** (Fabric) and the **Mods Screen** (NeoForge).
+  - Customize GUI scaling (50% to 150%) with a live preview.
+  - Player blocklist (case-insensitive blocking with instant suppression).
+  - Toggle sound alerts, player head avatars, and message timestamps.
 
 - **Multi-Language Support**:
-  - Built-in support for English, Turkish, German, French, Spanish, Russian, and Japanese.
-  - Custom translations can be added via JSON files in `.minecraft/config/retrochat/lang/`.
-
-- **History & 30-Day Auto Retention**:
-  - Chat history is saved locally per server or world in `.minecraft/retrochat/history/`.
-  - Messages older than 30 days are automatically pruned to keep disk usage lightweight and clean.
+  - Built-in support for English and Turkish.
+  - Custom translations can be added via JSON files.
 
 - **100% Client-Side**:
-  - Works on standard vanilla and multiplayer servers without needing server-side installation.
+  - Works on any vanilla, Paper, Purpur, or Spigot multiplayer server.
 
 ---
 
-## Controls
+## ⌨️ Controls
 
 | Key | Action |
 | --- | --- |
-| `T` (Vanilla Chat) | Open chat and interact with RetroChat windows and the sidebar |
-| `Escape` | Close overlay or unfocus input field |
-| `Enter` | Send message in focused chat window |
-| *Custom Key* | An optional dedicated overlay toggle key can be configured in **Options -> Controls -> Key Binds** (unbound by default) |
+| `T` (Vanilla Chat) | Open chat and interact with RetroChat windows, emoji picker, and sidebar |
+| `Escape` | Close emoji picker, unfocus chat, or close active overlay |
+| `Enter` | Send message in focused conversation window |
+| *Custom Key* | Dedicated overlay toggle key can be configured in **Options -> Controls -> Key Binds** |
 
 ---
 
-## Requirements
-
-- **Minecraft**: `1.21.4`
-- **Fabric Loader**: `0.16.x` or newer
-- **Fabric API**
-- **Java**: `21`
-
----
-
-## Building from Source
+## 🛠️ Building from Source
 
 To compile the mod from source using the Gradle wrapper:
 
@@ -74,10 +77,21 @@ To compile the mod from source using the Gradle wrapper:
 ./gradlew build
 ```
 
-The compiled JAR file will be located in `build/libs/`.
+Compiled JARs will be output to:
+- **Playable Mods:** `build/libs/mods/`
+- **Sources:** `build/libs/sources/`
 
 ---
 
-## License
+## 👤 Author & Contact
+
+* **Developer:** tikhi
+* **Discord:** `.tikhi`
+* **GitHub:** [tikh1](https://github.com/tikh1)
+* **Repository:** [https://github.com/tikh1/RetroChat](https://github.com/tikh1/RetroChat)
+
+---
+
+## 📄 License
 
 This project is licensed under the MIT License.
