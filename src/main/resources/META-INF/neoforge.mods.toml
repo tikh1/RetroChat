@@ -7,8 +7,13 @@ modId="retrochat"
 version="1.0.0"
 displayName="RetroChat"
 logoFile="assets/retrochat/icon.png"
-authors="Sen"
-description="Retro 2010s-style private messaging windows and collapsible player sidebar for Minecraft."
+authors="tikhi"
+displayURL="https://github.com/tikh1/RetroChat"
+description='''Retro 2010s Facebook-style instant direct messaging UI for Minecraft.
+
+Author: tikhi
+Discord: .tikhi
+GitHub: tikh1'''
 
 [[dependencies.retrochat]]
     modId="neoforge"

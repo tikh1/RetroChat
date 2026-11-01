@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class RetroChatConfig {
@@ -30,6 +32,13 @@ public class RetroChatConfig {
     public boolean showPlayerHeads = true;
     public String language = "auto";
 
+    public static class ServerUiState {
+        public boolean sidebarCollapsed = false;
+        public Map<String, String> windowStates = new LinkedHashMap<>();
+    }
+
+    public Map<String, ServerUiState> serverStates = new LinkedHashMap<>();
+
     public static RetroChatConfig getInstance() {
         if (instance == null) {
             instance = load();
@@ -44,6 +53,9 @@ public class RetroChatConfig {
                 if (config != null) {
                     if (config.blockedPlayers == null) {
                         config.blockedPlayers = new HashSet<>();
+                    }
+                    if (config.serverStates == null) {
+                        config.serverStates = new LinkedHashMap<>();
                     }
                     return config;
                 }
@@ -65,6 +77,41 @@ public class RetroChatConfig {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public synchronized ServerUiState getServerUiState(String serverKey) {
+        if (serverKey == null || serverKey.isEmpty()) {
+            serverKey = "default";
+        }
+        if (serverStates == null) {
+            serverStates = new LinkedHashMap<>();
+        }
+        ServerUiState state = serverStates.get(serverKey);
+        if (state == null) {
+            state = new ServerUiState();
+            serverStates.put(serverKey, state);
+        }
+        if (state.windowStates == null) {
+            state.windowStates = new LinkedHashMap<>();
+        }
+        return state;
+    }
+
+    public synchronized void setServerSidebarCollapsed(String serverKey, boolean collapsed) {
+        ServerUiState state = getServerUiState(serverKey);
+        state.sidebarCollapsed = collapsed;
+        save();
+    }
+
+    public synchronized void setServerWindowState(String serverKey, String playerName, String windowState) {
+        if (playerName == null) return;
+        ServerUiState state = getServerUiState(serverKey);
+        if ("CLOSED".equalsIgnoreCase(windowState) || windowState == null) {
+            state.windowStates.remove(playerName.toLowerCase());
+        } else {
+            state.windowStates.put(playerName.toLowerCase(), windowState.toUpperCase());
+        }
+        save();
     }
 
     public boolean isPlayerBlocked(String playerName) {
