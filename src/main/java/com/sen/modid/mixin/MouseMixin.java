@@ -19,8 +19,10 @@ public class MouseMixin {
     @Shadow private double x;
     @Shadow private double y;
 
-    @Inject(method = "onMouseButton", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;mouseClicked(DDI)Z"), cancellable = true)
-    private void onScreenMouseClicked(long window, int button, int action, int mods, CallbackInfo ci) {
+    @Inject(method = "onMouseButton", at = @At("HEAD"), cancellable = true)
+    private void onScreenMouseButton(long window, int button, int action, int mods, CallbackInfo ci) {
+        if (client.world == null) return;
+        if (client.currentScreen == null) return;
         if (client.currentScreen instanceof RetroChatConfigScreen || client.currentScreen instanceof RetroChatOverlayScreen) return;
 
         double mouseX = this.x * (double)client.getWindow().getScaledWidth() / (double)client.getWindow().getWidth();
@@ -30,11 +32,17 @@ public class MouseMixin {
             if (RetroChatOverlay.getInstance().mouseClicked(mouseX, mouseY, button)) {
                 ci.cancel();
             }
+        } else if (action == 0) { // GLFW_RELEASE
+            if (RetroChatOverlay.getInstance().mouseReleased(mouseX, mouseY, button)) {
+                ci.cancel();
+            }
         }
     }
 
-    @Inject(method = "onMouseScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;mouseScrolled(DDDD)Z"), cancellable = true)
-    private void onScreenMouseScrolled(long window, double horizontal, double vertical, CallbackInfo ci) {
+    @Inject(method = "onMouseScroll", at = @At("HEAD"), cancellable = true)
+    private void onScreenMouseScroll(long window, double horizontal, double vertical, CallbackInfo ci) {
+        if (client.world == null) return;
+        if (client.currentScreen == null) return;
         if (client.currentScreen instanceof RetroChatConfigScreen || client.currentScreen instanceof RetroChatOverlayScreen) return;
 
         double mouseX = this.x * (double)client.getWindow().getScaledWidth() / (double)client.getWindow().getWidth();

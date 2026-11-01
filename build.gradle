@@ -50,9 +50,11 @@ jar {
 }
 
 remapJar {
+    destinationDirectory = layout.buildDirectory.dir("libs/mods")
     archiveFileName = "${project.archives_base_name}-${project.mod_version}-fabric-${project.minecraft_version}.jar"
 }
 
 remapSourcesJar {
+    destinationDirectory = layout.buildDirectory.dir("libs/sources")
     archiveFileName = "${project.archives_base_name}-${project.mod_version}-fabric-${project.minecraft_version}-sources.jar"
 }

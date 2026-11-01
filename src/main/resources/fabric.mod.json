@@ -3,11 +3,15 @@
   "id": "retrochat",
   "version": "${version}",
   "name": "RetroChat",
-  "description": "Retro 2010s Facebook-style instant direct messaging UI for Minecraft.",
+  "description": "Retro 2010s Facebook-style instant direct messaging UI for Minecraft.\n\nAuthor: tikhi\nDiscord: .tikhi\nGitHub: tikh1",
   "authors": [
-    "Sen"
+    "tikhi"
   ],
-  "contact": {},
+  "contact": {
+    "homepage": "https://github.com/tikh1/RetroChat",
+    "sources": "https://github.com/tikh1/RetroChat",
+    "issues": "https://github.com/tikh1/RetroChat/issues"
+  },
   "license": "MIT",
   "icon": "assets/retrochat/icon.png",
   "environment": "client",

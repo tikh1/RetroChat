@@ -50,14 +50,16 @@ public class RetroChatClient implements ClientModInitializer {
             lastScreen = currentScreen;
 
             while (toggleChatKey.wasPressed()) {
-                if (client.currentScreen == null) {
-                    client.setScreen(new RetroChatOverlayScreen());
-                } else if (client.currentScreen instanceof RetroChatOverlayScreen) {
-                    client.setScreen(null);
+                if (client.world != null) {
+                    if (client.currentScreen == null) {
+                        client.setScreen(new RetroChatOverlayScreen());
+                    } else if (client.currentScreen instanceof RetroChatOverlayScreen) {
+                        client.setScreen(null);
+                    }
                 }
             }
         });
 
-        LOGGER.info("[RetroChat] Initialized successfully on Fabric 1.21.4!");
+        LOGGER.info("[RetroChat] Initialized successfully on Fabric 1.21.1!");
     }
 }

@@ -19,7 +19,7 @@ public class InGameHudMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
     private void onRender(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-        if (client.currentScreen == null) {
+        if (client.world != null && client.currentScreen == null) {
             RetroChatOverlay.getInstance().render(context, -1000, -1000, tickCounter.getTickDelta(true));
         }
     }
