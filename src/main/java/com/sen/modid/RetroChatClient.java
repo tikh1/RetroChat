@@ -3,15 +3,18 @@ package com.sen.modid;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.sen.modid.config.RetroChatConfig;
 import com.sen.modid.manager.ConversationManager;
+import com.sen.modid.ui.RetroChatConfigScreen;
 import com.sen.modid.ui.RetroChatOverlay;
 import com.sen.modid.ui.RetroChatOverlayScreen;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,12 +31,17 @@ public class RetroChatClient {
         return toggleChatKey;
     }
 
-    public RetroChatClient(IEventBus modEventBus) {
+    public RetroChatClient(IEventBus modEventBus, ModContainer modContainer) {
         LOGGER.info("[RetroChat] Initializing client mod...");
 
         RetroChatConfig.getInstance();
         com.sen.modid.lang.LanguageManager.getInstance();
         ConversationManager.getInstance();
+
+        modContainer.registerExtensionPoint(
+            IConfigScreenFactory.class,
+            (container, parentScreen) -> new RetroChatConfigScreen(parentScreen)
+        );
 
         modEventBus.addListener(this::registerKeyMappings);
         NeoForge.EVENT_BUS.addListener(this::onClientTick);
@@ -62,10 +70,12 @@ public class RetroChatClient {
         lastScreen = currentScreen;
 
         while (toggleChatKey != null && toggleChatKey.consumeClick()) {
-            if (client.screen == null) {
-                client.setScreen(new RetroChatOverlayScreen());
-            } else if (client.screen instanceof RetroChatOverlayScreen) {
-                client.setScreen(null);
+            if (client.level != null) {
+                if (client.screen == null) {
+                    client.setScreen(new RetroChatOverlayScreen());
+                } else if (client.screen instanceof RetroChatOverlayScreen) {
+                    client.setScreen(null);
+                }
             }
         }
     }

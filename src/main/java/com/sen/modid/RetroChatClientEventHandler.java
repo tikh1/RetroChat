@@ -145,13 +145,15 @@ public class RetroChatClientEventHandler {
     @SubscribeEvent
     public void onRenderGui(RenderGuiEvent.Post event) {
         Minecraft client = Minecraft.getInstance();
-        if (client.screen == null) {
+        if (client.level != null && client.screen == null) {
             RetroChatOverlay.getInstance().render(event.getGuiGraphics(), -1000, -1000, event.getPartialTick().getGameTimeDeltaPartialTick(true));
         }
     }
 
     @SubscribeEvent
     public void onScreenRender(ScreenEvent.Render.Post event) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) return;
         Screen screen = event.getScreen();
         if (!(screen instanceof RetroChatConfigScreen) && !(screen instanceof RetroChatOverlayScreen)) {
             RetroChatOverlay.getInstance().render(event.getGuiGraphics(), event.getMouseX(), event.getMouseY(), event.getPartialTick());
@@ -160,6 +162,8 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onScreenMouseClick(ScreenEvent.MouseButtonPressed.Pre event) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) return;
         Screen screen = event.getScreen();
         if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
         if (RetroChatOverlay.getInstance().mouseClicked(event.getMouseX(), event.getMouseY(), event.getButton())) {
@@ -169,6 +173,8 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onScreenMouseRelease(ScreenEvent.MouseButtonReleased.Pre event) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) return;
         Screen screen = event.getScreen();
         if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
         if (RetroChatOverlay.getInstance().mouseReleased(event.getMouseX(), event.getMouseY(), event.getButton())) {
@@ -178,6 +184,8 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onScreenMouseDrag(ScreenEvent.MouseDragged.Pre event) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) return;
         Screen screen = event.getScreen();
         if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
         if (RetroChatOverlay.getInstance().mouseDragged(event.getMouseX(), event.getMouseY(), event.getMouseButton(), event.getDragX(), event.getDragY())) {
@@ -187,6 +195,8 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onScreenMouseScroll(ScreenEvent.MouseScrolled.Pre event) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) return;
         Screen screen = event.getScreen();
         if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
         if (RetroChatOverlay.getInstance().mouseScrolled(event.getMouseX(), event.getMouseY(), event.getScrollDeltaX(), event.getScrollDeltaY())) {
@@ -196,6 +206,8 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onScreenKeyPress(ScreenEvent.KeyPressed.Pre event) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) return;
         Screen screen = event.getScreen();
         if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
         if (RetroChatOverlay.getInstance().keyPressed(event.getKeyCode(), event.getScanCode(), event.getModifiers())) {
@@ -205,6 +217,8 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onScreenCharType(ScreenEvent.CharacterTyped.Pre event) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) return;
         Screen screen = event.getScreen();
         if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
         if (RetroChatOverlay.getInstance().charTyped(event.getCodePoint(), event.getModifiers())) {
