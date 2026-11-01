@@ -17,8 +17,10 @@ public class KeyboardMixin {
 
     @Shadow @Final private MinecraftClient client;
 
-    @Inject(method = "onKey", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;keyPressed(III)Z"), cancellable = true)
+    @Inject(method = "onKey", at = @At("HEAD"), cancellable = true)
     private void onScreenKeyPressed(long window, int key, int scancode, int action, int mods, CallbackInfo ci) {
+        if (client.world == null) return;
+        if (client.currentScreen == null) return;
         if (client.currentScreen instanceof RetroChatConfigScreen || client.currentScreen instanceof RetroChatOverlayScreen) return;
 
         if (action != 0) { // press or repeat
@@ -28,8 +30,10 @@ public class KeyboardMixin {
         }
     }
 
-    @Inject(method = "onChar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;charTyped(CI)Z"), cancellable = true)
+    @Inject(method = "onChar", at = @At("HEAD"), cancellable = true)
     private void onScreenCharTyped(long window, int codePoint, int modifiers, CallbackInfo ci) {
+        if (client.world == null) return;
+        if (client.currentScreen == null) return;
         if (client.currentScreen instanceof RetroChatConfigScreen || client.currentScreen instanceof RetroChatOverlayScreen) return;
 
         char[] chars = Character.toChars(codePoint);

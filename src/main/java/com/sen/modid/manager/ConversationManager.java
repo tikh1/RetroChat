@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import com.sen.modid.config.RetroChatConfig;
 import com.sen.modid.model.Conversation;
 import com.sen.modid.model.DirectMessage;
+import com.sen.modid.ui.RetroChatOverlay;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ServerInfo;
@@ -68,6 +69,36 @@ public class ConversationManager {
         STORAGE_DIR.mkdirs();
     }
 
+        public String getCurrentServerKey() {
+        return currentServerKey;
+    }
+
+    private void restoreServerUiState() {
+        RetroChatConfig config = RetroChatConfig.getInstance();
+        RetroChatConfig.ServerUiState uiState = config.getServerUiState(currentServerKey);
+
+        RetroChatOverlay overlay = RetroChatOverlay.getInstance();
+        if (overlay != null && overlay.getSidebarWidget() != null) {
+            overlay.getSidebarWidget().setCollapsed(uiState.sidebarCollapsed, false);
+        }
+
+        windowStates.clear();
+        for (Map.Entry<String, String> entry : uiState.windowStates.entrySet()) {
+            try {
+                WindowState state = WindowState.valueOf(entry.getValue());
+                if (state != WindowState.CLOSED) {
+                    windowStates.put(entry.getKey().toLowerCase(), state);
+                    if (overlay != null) {
+                        overlay.getOrCreateWindow(entry.getKey());
+                    }
+                    for (ConversationListener listener : listeners) {
+                        listener.onWindowStateChanged(entry.getKey(), state);
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+    }
+
     public void updateServerScope() {
         MinecraftClient client = MinecraftClient.getInstance();
         String newKey = "default";
@@ -84,6 +115,7 @@ public class ConversationManager {
             saveCurrentScope();
             currentServerKey = newKey;
             loadCurrentScope();
+            restoreServerUiState();
         }
     }
 
@@ -197,6 +229,7 @@ public class ConversationManager {
         if (playerName == null) return;
         String key = playerName.toLowerCase();
         windowStates.put(key, state);
+        RetroChatConfig.getInstance().setServerWindowState(currentServerKey, playerName, state.name());
         if (state == WindowState.OPEN) {
             markAsRead(playerName);
         }
@@ -327,3 +360,4 @@ public class ConversationManager {
         }
     }
 }
+
