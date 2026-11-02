@@ -35,7 +35,7 @@ public class ChatWindowWidget {
     private int y;
     private int width;
     private int height;
-    private int currentTabWidth = 120;
+    private int currentTabWidth = 100;
     private boolean isRenderedAsTab = false;
 
     private TextFieldWidget inputField;
