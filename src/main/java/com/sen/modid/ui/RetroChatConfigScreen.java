@@ -136,7 +136,7 @@ public class RetroChatConfigScreen extends Screen {
                 LanguageManager.getInstance().cycleLanguage();
                 clearAndInit();
             }
-        ).dimensions(centerX - 87, startY + 96, 150, 20).build());
+        ).dimensions(centerX - 155, startY + 96, 126, 20).build());
 
         File langDir = FabricLoader.getInstance().getConfigDir().resolve("retrochat").resolve("lang").toFile();
         addDrawableChild(ButtonWidget.builder(Text.literal("?"), b -> {
@@ -145,8 +145,17 @@ public class RetroChatConfigScreen extends Screen {
             }
         })
         .tooltip(Tooltip.of(Text.literal(LanguageManager.get("config.language_help"))))
-        .dimensions(centerX + 67, startY + 96, 20, 20)
+        .dimensions(centerX - 25, startY + 96, 20, 20)
         .build());
+
+        addDrawableChild(ButtonWidget.builder(
+            Text.literal(LanguageManager.get("config.compact_tabs") + ": " + (config.compactTabs ? "ON" : "OFF")),
+            button -> {
+                config.compactTabs = !config.compactTabs;
+                button.setMessage(Text.literal(LanguageManager.get("config.compact_tabs") + ": " + (config.compactTabs ? "ON" : "OFF")));
+                config.save();
+            }
+        ).dimensions(centerX + 5, startY + 96, 150, 20).build());
 
         int boxX = centerX - 155;
         int boxY = 146;
