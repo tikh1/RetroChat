@@ -217,10 +217,13 @@ public class ChatWindowWidget {
         int tabHeight = HEADER_HEIGHT;
 
         boolean hovered = mouseX >= x && mouseX <= x + tabWidth && mouseY >= y && mouseY <= y + tabHeight;
-        GuiUtils.drawWindowHeader(context, x, y, tabWidth, tabHeight, hovered);
-
         Conversation conv = ConversationManager.getInstance().getConversation(playerName);
         int unread = (conv != null) ? conv.getUnreadCount() : 0;
+        boolean isBlinking = unread > 0 && ((System.currentTimeMillis() / 500) % 2 == 0);
+        GuiUtils.drawWindowHeader(context, x, y, tabWidth, tabHeight, hovered || isBlinking);
+        if (isBlinking) {
+            context.fill(x + 1, y + 1, x + tabWidth - 1, y + 2, GuiUtils.ORANGE_ACCENT_HOVER);
+        }
 
         if (tabWidth >= 75) {
             GuiUtils.drawPlayerHead(context, skin, x + 4, y + 4, 10);
@@ -408,18 +411,25 @@ public class ChatWindowWidget {
         if (state == ConversationManager.WindowState.MINIMIZED || isRenderedAsTab) {
             int currentWidth = this.currentTabWidth;
             if (mouseX >= x && mouseX <= x + currentWidth && mouseY >= y && mouseY <= y + HEADER_HEIGHT) {
-                if (currentWidth >= 46) {
-                    int closeBtnX = x + currentWidth - 15;
-                    if (mouseX >= closeBtnX && mouseX <= closeBtnX + 13) {
-                        GuiUtils.playClickSound();
-                        cm.closeWindow(playerName);
-                        return true;
-                    }
+                if (button == 2) {
+                    GuiUtils.playClickSound();
+                    cm.closeWindow(playerName);
+                    return true;
                 }
-                GuiUtils.playClickSound();
-                cm.openWindow(playerName);
-                focusInput();
-                return true;
+                if (button == 0) {
+                    if (currentWidth >= 46) {
+                        int closeBtnX = x + currentWidth - 15;
+                        if (mouseX >= closeBtnX && mouseX <= closeBtnX + 13) {
+                            GuiUtils.playClickSound();
+                            cm.closeWindow(playerName);
+                            return true;
+                        }
+                    }
+                    GuiUtils.playClickSound();
+                    cm.openWindow(playerName);
+                    focusInput();
+                    return true;
+                }
             }
             return false;
         }
