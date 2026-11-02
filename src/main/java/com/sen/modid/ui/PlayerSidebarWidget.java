@@ -10,7 +10,7 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.client.util.SkinTextures;
+import net.minecraft.util.Identifier;
 import net.minecraft.text.Text;
 
 import java.util.*;
@@ -236,7 +236,7 @@ public class PlayerSidebarWidget {
 
             PlayerListEntry ple = (client.getNetworkHandler() != null) ? client.getNetworkHandler().getPlayerListEntry(name) : null;
             boolean online = ple != null;
-            SkinTextures skin = (ple != null && ple.getSkinTextures() != null) ? ple.getSkinTextures() : GuiUtils.getPlayerSkin(conv.getPlayerUuid(), name);
+            Identifier skin = (ple != null && ple.getSkinTexture() != null) ? ple.getSkinTexture() : GuiUtils.getPlayerSkin(conv.getPlayerUuid(), name);
 
             entryMap.put(name.toLowerCase(), new PlayerEntryData(name, conv.getPlayerUuid(), skin, online, conv.getUnreadCount(), conv.getLastMessageTimestamp()));
         }
@@ -256,7 +256,7 @@ public class PlayerSidebarWidget {
                 if (!filterQuery.isEmpty() && !name.toLowerCase().contains(filterQuery)) continue;
 
                 if (!entryMap.containsKey(name.toLowerCase())) {
-                    entryMap.put(name.toLowerCase(), new PlayerEntryData(name, ple.getProfile().getId(), ple.getSkinTextures(), true, 0, 0));
+                    entryMap.put(name.toLowerCase(), new PlayerEntryData(name, ple.getProfile().getId(), ple.getSkinTexture(), true, 0, 0));
                 }
             }
         }
@@ -368,7 +368,7 @@ public class PlayerSidebarWidget {
         return false;
     }
 
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double verticalAmount) {
         if (collapsed) return false;
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
             if (maxScroll > 0) {
@@ -405,12 +405,12 @@ public class PlayerSidebarWidget {
     private static class PlayerEntryData {
         final String playerName;
         final UUID playerUuid;
-        final SkinTextures skinTextures;
+        final Identifier skinTextures;
         final boolean isOnline;
         final int unreadCount;
         final long lastMessageTimestamp;
 
-        PlayerEntryData(String playerName, UUID playerUuid, SkinTextures skinTextures, boolean isOnline, int unreadCount, long lastMessageTimestamp) {
+        PlayerEntryData(String playerName, UUID playerUuid, Identifier skinTextures, boolean isOnline, int unreadCount, long lastMessageTimestamp) {
             this.playerName = playerName;
             this.playerUuid = playerUuid;
             this.skinTextures = skinTextures;

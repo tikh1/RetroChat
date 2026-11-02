@@ -13,7 +13,7 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.client.util.SkinTextures;
+import net.minecraft.util.Identifier;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 
@@ -197,7 +197,7 @@ public class RetroChatConfigScreen extends Screen {
             }
         }
 
-        renderBackground(context, mouseX, mouseY, delta);
+        renderBackground(context);
 
         if (isDraggingPreview) {
             super.render(context, mouseX, mouseY, delta);
@@ -424,7 +424,7 @@ public class RetroChatConfigScreen extends Screen {
             return;
         }
 
-        SkinTextures skin = GuiUtils.getPlayerSkin(item.uuid, item.name);
+        Identifier skin = GuiUtils.getPlayerSkin(item.uuid, item.name);
         GuiUtils.drawPlayerHead(context, skin, boxX + 8, y + 3, 11);
 
         if (!item.isBlocked) {
@@ -480,7 +480,7 @@ public class RetroChatConfigScreen extends Screen {
         msg1.append(Text.literal("Steve: ").styled(s -> s.withColor(0x4ADE80)));
         msg1.append(Text.literal(LanguageManager.get("config.preview_msg1")).styled(s -> s.withColor(0xFFFFFF)));
 
-        SkinTextures steveSkin = GuiUtils.getPlayerSkin(null, "Steve");
+        Identifier steveSkin = GuiUtils.getPlayerSkin(null, "Steve");
         List<net.minecraft.text.OrderedText> lines1 = textRenderer.wrapLines(msg1, availWidth);
         for (int i = 0; i < lines1.size(); i++) {
             if (currentLineY + 9 <= msgY + msgH - 2) {
@@ -506,7 +506,7 @@ public class RetroChatConfigScreen extends Screen {
         msg2.append(Text.literal(LanguageManager.get("chat.you") + ": ").styled(s -> s.withColor(0xF97316)));
         msg2.append(Text.literal(LanguageManager.get("config.preview_msg2")).styled(s -> s.withColor(0xFEF08A)));
 
-        SkinTextures mySkin = (client != null && client.player != null) ? client.player.getSkinTextures() : null;
+        Identifier mySkin = (client != null && client.player != null) ? client.player.getSkinTexture() : null;
         List<net.minecraft.text.OrderedText> lines2 = textRenderer.wrapLines(msg2, availWidth);
         for (int i = 0; i < lines2.size(); i++) {
             if (currentLineY + 9 <= msgY + msgH - 2) {
@@ -636,7 +636,7 @@ public class RetroChatConfigScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double verticalAmount) {
         int centerX = width / 2;
         int boxX = centerX - 155;
         int boxY = 154;
@@ -655,7 +655,7 @@ public class RetroChatConfigScreen extends Screen {
             }
         }
 
-        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+        return super.mouseScrolled(mouseX, mouseY, verticalAmount);
     }
 
     private class PreviewSlider extends SliderWidget {

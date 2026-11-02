@@ -4,7 +4,6 @@ import com.sen.modid.ui.RetroChatOverlay;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
-import net.minecraft.client.render.RenderTickCounter;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -18,9 +17,9 @@ public class InGameHudMixin {
     @Shadow @Final private MinecraftClient client;
 
     @Inject(method = "render", at = @At("TAIL"))
-    private void onRender(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+    private void onRender(DrawContext context, float tickDelta, CallbackInfo ci) {
         if (client.world != null && client.currentScreen == null) {
-            RetroChatOverlay.getInstance().render(context, -1000, -1000, tickCounter.getTickDelta(true));
+            RetroChatOverlay.getInstance().render(context, -1000, -1000, tickDelta);
         }
     }
 }

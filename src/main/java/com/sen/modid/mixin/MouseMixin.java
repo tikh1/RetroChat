@@ -48,7 +48,7 @@ public class MouseMixin {
         double mouseX = this.x * (double)client.getWindow().getScaledWidth() / (double)client.getWindow().getWidth();
         double mouseY = this.y * (double)client.getWindow().getScaledHeight() / (double)client.getWindow().getHeight();
 
-        if (RetroChatOverlay.getInstance().mouseScrolled(mouseX, mouseY, horizontal, vertical)) {
+        if (RetroChatOverlay.getInstance().mouseScrolled(mouseX, mouseY, vertical)) {
             ci.cancel();
         }
     }

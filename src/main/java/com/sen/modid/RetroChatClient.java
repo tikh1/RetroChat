@@ -61,6 +61,6 @@ public class RetroChatClient implements ClientModInitializer {
             }
         });
 
-        LOGGER.info("[RetroChat] Initialized successfully on Fabric 1.21.1!");
+        LOGGER.info("[RetroChat] Initialized successfully on Fabric 1.20.1!");
     }
 }

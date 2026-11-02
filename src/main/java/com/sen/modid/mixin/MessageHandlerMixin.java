@@ -39,10 +39,17 @@ public class MessageHandlerMixin {
         Pattern.compile("^\\[to (\\w+)\\]:? (.*)$", Pattern.CASE_INSENSITIVE)
     };
 
+    private static boolean isMessageType(MessageType.Parameters params, net.minecraft.registry.RegistryKey<MessageType> key) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.world == null) return false;
+        net.minecraft.registry.Registry<MessageType> registry = client.world.getRegistryManager().get(net.minecraft.registry.RegistryKeys.MESSAGE_TYPE);
+        return registry.getKey(params.type()).map(k -> k.equals(key)).orElse(false);
+    }
+
     @Inject(method = "onChatMessage", at = @At("HEAD"), cancellable = true)
     private void onChatMessage(SignedMessage message, GameProfile senderProfile, MessageType.Parameters params, CallbackInfo ci) {
         if (!RetroChatConfig.getInstance().modEnabled) return;
-        if (params.type().matchesKey(MessageType.MSG_COMMAND_INCOMING)) {
+        if (isMessageType(params, MessageType.MSG_COMMAND_INCOMING)) {
             String senderName = senderProfile.getName();
             boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(senderName);
             UUID senderUuid = senderProfile.getId();
@@ -55,8 +62,8 @@ public class MessageHandlerMixin {
             if (isBlocked || RetroChatConfig.getInstance().hideDmsInVanillaChat) {
                 ci.cancel();
             }
-        } else if (params.type().matchesKey(MessageType.MSG_COMMAND_OUTGOING)) {
-            String targetName = params.targetName().map(Text::getString).orElse("Unknown");
+        } else if (isMessageType(params, MessageType.MSG_COMMAND_OUTGOING)) {
+            String targetName = params.targetName() != null ? params.targetName().getString() : "Unknown";
             if (RetroChatConfig.getInstance().isPlayerBlocked(targetName)) {
                 ci.cancel();
                 return;
@@ -78,7 +85,7 @@ public class MessageHandlerMixin {
     @Inject(method = "onProfilelessMessage", at = @At("HEAD"), cancellable = true)
     private void onProfilelessMessage(Text message, MessageType.Parameters params, CallbackInfo ci) {
         if (!RetroChatConfig.getInstance().modEnabled) return;
-        if (params.type().matchesKey(MessageType.MSG_COMMAND_INCOMING)) {
+        if (isMessageType(params, MessageType.MSG_COMMAND_INCOMING)) {
             String senderName = params.name().getString();
             boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(senderName);
             String content = message.getString();
@@ -90,8 +97,8 @@ public class MessageHandlerMixin {
             if (isBlocked || RetroChatConfig.getInstance().hideDmsInVanillaChat) {
                 ci.cancel();
             }
-        } else if (params.type().matchesKey(MessageType.MSG_COMMAND_OUTGOING)) {
-            String targetName = params.targetName().map(Text::getString).orElse("Unknown");
+        } else if (isMessageType(params, MessageType.MSG_COMMAND_OUTGOING)) {
+            String targetName = params.targetName() != null ? params.targetName().getString() : "Unknown";
             if (RetroChatConfig.getInstance().isPlayerBlocked(targetName)) {
                 ci.cancel();
                 return;

@@ -8,13 +8,14 @@ It intercepts vanilla private messages (`/msg`, `/tell`, `/w`) at the client pac
 
 ## 🎮 Supported Versions & Branches
 
-RetroChat is available for **Fabric** and **NeoForge** across modern Minecraft 1.21.x releases:
+RetroChat is available across modern Minecraft releases:
 
-| Minecraft Version | Fabric Loader | NeoForge Loader | Branch |
+| Minecraft Version | Fabric Loader | NeoForge / Forge | Branch |
 | :--- | :---: | :---: | :--- |
-| **1.21.4** | ✅ Supported | ✅ Supported | `fabric-1.21.4` / `neoforge-1.21.4` |
-| **1.21.3** | ✅ Supported | ✅ Supported | `fabric-1.21.3` / `neoforge-1.21.3` |
-| **1.21.1** | ✅ Supported | ✅ Supported | `fabric-1.21.1` / `neoforge-1.21.1` |
+| **1.21.4** | ✅ Supported | ✅ Supported (NeoForge) | `fabric-1.21.4` / `neoforge-1.21.4` |
+| **1.21.3** | ✅ Supported | ✅ Supported (NeoForge) | `fabric-1.21.3` / `neoforge-1.21.3` |
+| **1.21.1** | ✅ Supported | ✅ Supported (NeoForge) | `fabric-1.21.1` / `neoforge-1.21.1` |
+| **1.20.1** | ✅ Supported | ⏳ In Progress (Forge) | `fabric-1.20.1` |
 
 ---
 

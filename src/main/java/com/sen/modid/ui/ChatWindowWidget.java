@@ -11,7 +11,7 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.client.util.SkinTextures;
+import net.minecraft.util.Identifier;
 import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Text;
 
@@ -112,17 +112,14 @@ public class ChatWindowWidget {
         return this.currentTabWidth;
     }
 
-    public SkinTextures getSkinTextures() {
+    public Identifier getIdentifier() {
         return GuiUtils.getPlayerSkin(playerUuid, playerName);
     }
 
-    public SkinTextures getMySkinTextures() {
+    public Identifier getMyIdentifier() {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null) {
-            return client.player.getSkinTextures();
-        }
-        if (client.getSkinProvider() != null && client.getSession() != null) {
-            return client.getSkinProvider().getSkinTextures(client.getGameProfile());
+            return client.player.getSkinTexture();
         }
         return null;
     }
@@ -139,7 +136,7 @@ public class ChatWindowWidget {
 
         MinecraftClient client = MinecraftClient.getInstance();
         TextRenderer tr = client.textRenderer;
-        SkinTextures skin = getSkinTextures();
+        Identifier skin = getIdentifier();
 
         if (state == ConversationManager.WindowState.MINIMIZED || isRenderedAsTab) {
             renderMinimizedTab(context, tr, skin, mouseX, mouseY, currentTabWidth);
@@ -262,11 +259,11 @@ public class ChatWindowWidget {
         this.isRenderedAsTab = true;
         MinecraftClient client = MinecraftClient.getInstance();
         TextRenderer tr = client.textRenderer;
-        SkinTextures skin = getSkinTextures();
+        Identifier skin = getIdentifier();
         renderMinimizedTab(context, tr, skin, mouseX, mouseY, actualTabWidth);
     }
 
-    private void renderMinimizedTab(DrawContext context, TextRenderer tr, SkinTextures skin, int mouseX, int mouseY, int tabWidth) {
+    private void renderMinimizedTab(DrawContext context, TextRenderer tr, Identifier skin, int mouseX, int mouseY, int tabWidth) {
         this.currentTabWidth = tabWidth;
         int tabHeight = HEADER_HEIGHT;
 
@@ -346,8 +343,8 @@ public class ChatWindowWidget {
         List<MessageLine> renderedLines = new ArrayList<>();
         boolean showTimestamps = RetroChatConfig.getInstance().showTimestamps;
         boolean showPlayerHeads = RetroChatConfig.getInstance().showPlayerHeads;
-        SkinTextures incomingSkin = getSkinTextures();
-        SkinTextures mySkin = getMySkinTextures();
+        Identifier incomingSkin = getIdentifier();
+        Identifier mySkin = getMyIdentifier();
 
         int availWidth = Math.max(10, areaWidth - 8);
 
@@ -365,7 +362,7 @@ public class ChatWindowWidget {
                 fullMsg.append(Text.literal("   "));
             }
 
-            SkinTextures skin = msg.isIncoming() ? incomingSkin : mySkin;
+            Identifier skin = msg.isIncoming() ? incomingSkin : mySkin;
             if (msg.isIncoming()) {
                 if (msg.wasBlocked()) {
                     fullMsg.append(Text.literal("[ğŸš«] ").styled(s -> s.withColor(0xFFFF5555)));
@@ -429,11 +426,11 @@ public class ChatWindowWidget {
 
     private static class MessageLine {
         final net.minecraft.text.OrderedText text;
-        final SkinTextures headSkin;
+        final Identifier headSkin;
         final int headXOffset;
         final boolean wasBlocked;
 
-        MessageLine(net.minecraft.text.OrderedText text, SkinTextures headSkin, int headXOffset, boolean wasBlocked) {
+        MessageLine(net.minecraft.text.OrderedText text, Identifier headSkin, int headXOffset, boolean wasBlocked) {
             this.text = text;
             this.headSkin = headSkin;
             this.headXOffset = headXOffset;
@@ -449,7 +446,7 @@ public class ChatWindowWidget {
         }
         if (this.inputField != null) {
             this.inputField.setFocused(true);
-            this.inputField.setCursorToEnd(false);
+            this.inputField.setCursorToEnd();
         }
     }
 
@@ -610,7 +607,7 @@ public class ChatWindowWidget {
         return false;
     }
 
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double verticalAmount) {
         ConversationManager.WindowState state = ConversationManager.getInstance().getWindowState(playerName);
         if (state != ConversationManager.WindowState.OPEN) return false;
 
@@ -619,7 +616,7 @@ public class ChatWindowWidget {
             int panelH = Math.min(height - HEADER_HEIGHT - 36, 125);
             int panelX = x + width - panelW - 4;
             int panelY = y + height - 33 - panelH;
-            if (emojiPicker.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount, panelX, panelY, panelW, panelH)) {
+            if (emojiPicker.mouseScrolled(mouseX, mouseY, verticalAmount, panelX, panelY, panelW, panelH)) {
                 return true;
             }
         }
