@@ -70,6 +70,7 @@ public class RetroChatClient {
         lastScreen = currentScreen;
 
         while (toggleChatKey != null && toggleChatKey.consumeClick()) {
+            if (!RetroChatConfig.getInstance().modEnabled) continue;
             if (client.level != null) {
                 if (client.screen == null) {
                     client.setScreen(new RetroChatOverlayScreen());
