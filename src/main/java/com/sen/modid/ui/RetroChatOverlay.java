@@ -43,6 +43,10 @@ public class RetroChatOverlay {
         return sidebarWidget;
     }
 
+    public synchronized void clearWindows() {
+        windowWidgets.clear();
+    }
+
     public synchronized ChatWindowWidget getOrCreateWindow(String playerName) {
         String key = playerName.toLowerCase();
         ChatWindowWidget widget = windowWidgets.get(key);
@@ -161,8 +165,11 @@ public class RetroChatOverlay {
             int windowY = overlapsHotbar ? (screenHeight - wHeight - hotbarClearance) : (screenHeight - wHeight);
 
             window.setPosition(windowX, windowY);
-            window.render(context, mouseX, mouseY, delta);
             currentRightX = windowX - 4;
+        }
+
+        for (int i = finalOpenWindows.size() - 1; i >= 0; i--) {
+            finalOpenWindows.get(i).render(context, mouseX, mouseY, delta);
         }
 
         for (ChatWindowWidget tabWindow : minimizedCandidates) {
