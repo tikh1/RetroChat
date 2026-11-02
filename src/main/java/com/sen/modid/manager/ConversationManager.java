@@ -80,14 +80,25 @@ public class ConversationManager {
             newKey = "sp_" + client.getServer().getSaveProperties().getLevelName();
         } else {
             ServerInfo server = client.getCurrentServerEntry();
-            if (server != null && server.address != null) {
-                newKey = "mp_" + server.address.replace(':', '_').replace('/', '_');
+            if (server != null && server.address != null && !server.address.trim().isEmpty()) {
+                newKey = "mp_" + server.address.trim().replace(':', '_').replace('/', '_');
+            } else if (client.getNetworkHandler() != null && client.getNetworkHandler().getConnection() != null) {
+                java.net.SocketAddress socketAddr = client.getNetworkHandler().getConnection().getAddress();
+                if (socketAddr instanceof java.net.InetSocketAddress inet) {
+                    newKey = "mp_" + inet.getHostString() + "_" + inet.getPort();
+                } else if (socketAddr != null) {
+                    newKey = "mp_" + socketAddr.toString().replace(':', '_').replace('/', '_');
+                }
             }
         }
 
-        if (!newKey.equals(currentServerKey)) {
+        if (!newKey.equals("default") && !newKey.equals(currentServerKey)) {
             saveCurrentScope();
             currentServerKey = newKey;
+            RetroChatOverlay overlay = RetroChatOverlay.getInstance();
+            if (overlay != null) {
+                overlay.clearWindows();
+            }
             loadCurrentScope();
             restoreServerUiState();
         }
@@ -298,9 +309,13 @@ public class ConversationManager {
 
     public synchronized void resetScope() {
         saveCurrentScope();
-        currentServerKey = "default";
+        currentServerKey = "";
         conversations.clear();
         windowStates.clear();
+        RetroChatOverlay overlay = RetroChatOverlay.getInstance();
+        if (overlay != null) {
+            overlay.clearWindows();
+        }
     }
 
     public void addListener(ConversationListener listener) {
@@ -317,6 +332,9 @@ public class ConversationManager {
     }
 
     public synchronized void saveCurrentScope() {
+        if (currentServerKey == null || currentServerKey.trim().isEmpty() || currentServerKey.equals("default")) {
+            return;
+        }
         try {
             long cutoff = System.currentTimeMillis() - MESSAGE_RETENTION_MS;
             conversations.values().removeIf(c -> {
@@ -326,7 +344,7 @@ public class ConversationManager {
 
             File file = getFileForScope(currentServerKey);
             file.getParentFile().mkdirs();
-            try (FileWriter writer = new FileWriter(file)) {
+            try (FileWriter writer = new FileWriter(file, java.nio.charset.StandardCharsets.UTF_8)) {
                 GSON.toJson(conversations, writer);
             }
         } catch (Exception e) {
@@ -336,10 +354,13 @@ public class ConversationManager {
 
     public synchronized void loadCurrentScope() {
         conversations.clear();
+        if (currentServerKey == null || currentServerKey.trim().isEmpty() || currentServerKey.equals("default")) {
+            return;
+        }
         try {
             File file = getFileForScope(currentServerKey);
             if (file.exists()) {
-                try (FileReader reader = new FileReader(file)) {
+                try (FileReader reader = new FileReader(file, java.nio.charset.StandardCharsets.UTF_8)) {
                     Type type = new TypeToken<Map<String, Conversation>>(){}.getType();
                     Map<String, Conversation> loaded = GSON.fromJson(reader, type);
                     if (loaded != null) {

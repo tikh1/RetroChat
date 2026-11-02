@@ -48,7 +48,7 @@ public class RetroChatConfig {
 
     public static RetroChatConfig load() {
         if (CONFIG_FILE.exists()) {
-            try (FileReader reader = new FileReader(CONFIG_FILE)) {
+            try (FileReader reader = new FileReader(CONFIG_FILE, java.nio.charset.StandardCharsets.UTF_8)) {
                 RetroChatConfig config = GSON.fromJson(reader, RetroChatConfig.class);
                 if (config != null) {
                     if (config.blockedPlayers == null) {
@@ -71,7 +71,7 @@ public class RetroChatConfig {
     public void save() {
         try {
             CONFIG_FILE.getParentFile().mkdirs();
-            try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
+            try (FileWriter writer = new FileWriter(CONFIG_FILE, java.nio.charset.StandardCharsets.UTF_8)) {
                 GSON.toJson(this, writer);
             }
         } catch (Exception e) {
