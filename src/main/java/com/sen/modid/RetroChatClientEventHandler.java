@@ -51,9 +51,9 @@ public class RetroChatClientEventHandler {
         if (params != null) {
             if (params.chatType().is(ChatType.MSG_COMMAND_INCOMING)) {
                 String senderName = params.name().getString();
-                if (RetroChatConfig.getInstance().isPlayerBlocked(senderName)) {
+                boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(senderName);
+                if (isBlocked) {
                     event.setCanceled(true);
-                    return;
                 }
                 UUID senderUuid = event.getSender();
                 String content;
@@ -64,7 +64,7 @@ public class RetroChatClientEventHandler {
                 }
                 long timestamp = Instant.now().toEpochMilli();
 
-                DirectMessage dm = new DirectMessage(senderUuid, senderName, null, "me", content, timestamp, true, false);
+                DirectMessage dm = new DirectMessage(senderUuid, senderName, null, "me", content, timestamp, isBlocked, false, isBlocked);
                 ConversationManager.getInstance().addMessage(senderName, senderUuid, dm);
 
                 if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
@@ -73,9 +73,9 @@ public class RetroChatClientEventHandler {
                 return;
             } else if (params.chatType().is(ChatType.MSG_COMMAND_OUTGOING)) {
                 String targetName = params.targetName().map(Component::getString).orElse("Unknown");
-                if (RetroChatConfig.getInstance().isPlayerBlocked(targetName)) {
+                boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(targetName);
+                if (isBlocked) {
                     event.setCanceled(true);
-                    return;
                 }
                 String content;
                 if (event instanceof ClientChatReceivedEvent.Player playerEvent) {
@@ -86,7 +86,7 @@ public class RetroChatClientEventHandler {
                 long timestamp = Instant.now().toEpochMilli();
 
                 if (!ConversationManager.getInstance().consumePendingOutgoing(targetName, content)) {
-                    DirectMessage dm = new DirectMessage(null, "me", null, targetName, content, timestamp, false, true);
+                    DirectMessage dm = new DirectMessage(null, "me", null, targetName, content, timestamp, false, true, false);
                     ConversationManager.getInstance().addMessage(targetName, null, dm);
                 }
 
@@ -107,12 +107,12 @@ public class RetroChatClientEventHandler {
             Matcher m = p.matcher(raw);
             if (m.matches()) {
                 String sender = m.group(1);
-                if (RetroChatConfig.getInstance().isPlayerBlocked(sender)) {
+                boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(sender);
+                if (isBlocked) {
                     event.setCanceled(true);
-                    return;
                 }
                 String content = m.group(2);
-                DirectMessage dm = new DirectMessage(null, sender, null, "me", content, Instant.now().toEpochMilli(), true, false);
+                DirectMessage dm = new DirectMessage(null, sender, null, "me", content, Instant.now().toEpochMilli(), isBlocked, false, isBlocked);
                 ConversationManager.getInstance().addMessage(sender, null, dm);
                 if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
                     event.setCanceled(true);
@@ -125,13 +125,13 @@ public class RetroChatClientEventHandler {
             Matcher m = p.matcher(raw);
             if (m.matches()) {
                 String target = m.group(1);
-                if (RetroChatConfig.getInstance().isPlayerBlocked(target)) {
+                boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(target);
+                if (isBlocked) {
                     event.setCanceled(true);
-                    return;
                 }
                 String content = m.group(2);
                 if (!ConversationManager.getInstance().consumePendingOutgoing(target, content)) {
-                    DirectMessage dm = new DirectMessage(null, "me", null, target, content, Instant.now().toEpochMilli(), false, true);
+                    DirectMessage dm = new DirectMessage(null, "me", null, target, content, Instant.now().toEpochMilli(), false, true, false);
                     ConversationManager.getInstance().addMessage(target, null, dm);
                 }
                 if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
