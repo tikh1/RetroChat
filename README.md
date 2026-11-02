@@ -20,6 +20,18 @@ RetroChat is available for **Fabric** and **NeoForge** across modern Minecraft 1
 
 ## ✨ Features
 
+- **Mod Master Switch**:
+  - Full master toggle in settings (`RetroChat Mod: ON / OFF`).
+  - When disabled, direct messages (`/msg`, `/tell`, `/w`) completely bypass the mod and function exactly like vanilla Minecraft chat.
+
+- **Fast Coordinates Sharing (`[XYZ]`)**:
+  - Located on the bottom bar next to the character counter.
+  - Automatically formats and inserts your current block coordinates `[X, Y, Z] ` into the message input field.
+
+- **In-Chat Message Search (`Ctrl+F`)**:
+  - Header search icon button or `Ctrl+F` shortcut opens an inline message search bar.
+  - Filters matching chat messages in real time with an empty results indicator.
+
 - **Retro ASCII Emoji Picker (`[:)]`)**:
   - Integrated directly to the right of the character counter at the bottom of every chat window.
   - **56 Handcrafted Emoticons** across 3 categories:
@@ -32,7 +44,9 @@ RetroChat is available for **Fabric** and **NeoForge** across modern Minecraft 1
   - Distinct conversation window for each active player chat.
   - **Pin** windows to keep them visible while playing.
   - **Minimize** windows into compact tabs docked along the bottom bar.
-  - Live unread notification counter badges on tabs.
+  - Live unread notification counter badges with subtle flashing on new messages.
+  - **Middle-click** on minimized tabs to quickly close them.
+  - Optional **Compact Tabs** mode in settings for minimal screen footprint.
 
 - **Player Sidebar**:
   - Fast-access sidebar on the right side of the screen.
@@ -45,13 +59,14 @@ RetroChat is available for **Fabric** and **NeoForge** across modern Minecraft 1
 
 - **Config Screen & Mod Menu Integration**:
   - Accessible in-game via **ModMenu** (Fabric) and the **Mods Screen** (NeoForge).
-  - Customize GUI scaling (50% to 150%) with a live preview.
+  - Master mod toggle button and hide DMs in vanilla chat toggle.
+  - Customize GUI scaling (50% to 150%) and window dimensions with live preview.
   - Player blocklist (case-insensitive blocking with instant suppression).
-  - Toggle sound alerts, player head avatars, and message timestamps.
+  - Toggle sound alerts, player head avatars, message timestamps, and compact tabs.
 
 - **Multi-Language Support**:
-  - Built-in support for English and Turkish.
-  - Custom translations can be added via JSON files.
+  - Built-in support for 6 languages: English, Turkish, German, Russian, Spanish, and French.
+  - Custom translations can easily be added or modified via JSON files in the config folder.
 
 - **100% Client-Side**:
   - Works on any vanilla, Paper, Purpur, or Spigot multiplayer server.
@@ -63,7 +78,9 @@ RetroChat is available for **Fabric** and **NeoForge** across modern Minecraft 1
 | Key | Action |
 | --- | --- |
 | `T` (Vanilla Chat) | Open chat and interact with RetroChat windows, emoji picker, and sidebar |
-| `Escape` | Close emoji picker, unfocus chat, or close active overlay |
+| `Ctrl + F` | Toggle in-chat message search filter |
+| `Middle Click` | Close minimized chat tab |
+| `Escape` | Close emoji picker, search bar, unfocus chat, or close active overlay |
 | `Enter` | Send message in focused conversation window |
 | *Custom Key* | Dedicated overlay toggle key can be configured in **Options -> Controls -> Key Binds** |
 
