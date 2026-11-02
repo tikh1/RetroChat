@@ -152,6 +152,29 @@ public class GuiUtils {
         context.fill(cx + 1, cy + 2, cx + 2, cy + 3, color);
     }
 
+    public static void drawSearchButton(DrawContext context, int x, int y, int width, int height, boolean active, boolean hovered) {
+        if (active) {
+            int bg = hovered ? 0xFF4A3018 : 0xFF352010;
+            int topBorder = hovered ? 0xFF7A4A25 : 0xFF5C3518;
+            int bottomBorder = hovered ? 0xFF241408 : 0xFF1C0E05;
+            drawBeveledBox(context, x, y, width, height, bg, topBorder, bottomBorder);
+            context.fill(x, y, x + width, y + 1, ORANGE_ACCENT);
+        } else {
+            drawButtonBox(context, x, y, width, height, hovered);
+        }
+
+        int cx = x + width / 2;
+        int cy = y + height / 2;
+        int color = (active || hovered) ? ORANGE_ACCENT_HOVER : 0xFFB8D5C0;
+
+        context.fill(cx - 3, cy - 3, cx + 1, cy - 2, color);
+        context.fill(cx - 3, cy, cx + 1, cy + 1, color);
+        context.fill(cx - 3, cy - 2, cx - 2, cy, color);
+        context.fill(cx, cy - 2, cx + 1, cy, color);
+        context.fill(cx + 1, cy + 1, cx + 2, cy + 2, color);
+        context.fill(cx + 2, cy + 2, cx + 3, cy + 3, color);
+    }
+
     public static void drawSettingsButton(DrawContext context, int x, int y, int width, int height, boolean hovered) {
         drawButtonBox(context, x, y, width, height, hovered);
 
