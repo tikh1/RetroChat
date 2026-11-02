@@ -49,7 +49,7 @@ public class RetroChatClient {
         MinecraftForge.EVENT_BUS.addListener(this::onClientTick);
         MinecraftForge.EVENT_BUS.register(new RetroChatClientEventHandler());
 
-        LOGGER.info("[RetroChat] Initialized successfully on Forge 1.21.1!");
+        LOGGER.info("[RetroChat] Initialized successfully on Forge 1.21.3!");
     }
 
     private void registerKeyMappings(RegisterKeyMappingsEvent event) {
