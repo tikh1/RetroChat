@@ -64,13 +64,13 @@ public class RetroChatOverlay {
     public void openConfigScreen() {
         Minecraft client = Minecraft.getInstance();
         if (client != null) {
-            client.setScreen(new RetroChatConfigScreen(client.screen));
+            client.gui.setScreen(new RetroChatConfigScreen(client.gui.screen()));
         }
     }
 
     public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         Minecraft client = Minecraft.getInstance();
-        if (client.level == null || client.options.hideGui || !RetroChatConfig.getInstance().modEnabled) return;
+        if (client.level == null || client.gui.hud.isHidden() || !RetroChatConfig.getInstance().modEnabled) return;
 
         ConversationManager.getInstance().updateServerScope();
 
@@ -99,7 +99,7 @@ public class RetroChatOverlay {
 
     public void renderHud(GuiGraphicsExtractor extractor, DeltaTracker deltaTracker) {
         Minecraft client = Minecraft.getInstance();
-        if (client.screen == null) {
+        if (client.gui.screen() == null) {
             render(extractor, -1000, -1000, deltaTracker.getGameTimeDeltaPartialTick(true));
         }
     }

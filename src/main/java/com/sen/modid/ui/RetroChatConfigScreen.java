@@ -187,7 +187,7 @@ public class RetroChatConfigScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal(LanguageManager.get("config.done")), b -> {
             config.save();
             if (minecraft != null) {
-                minecraft.setScreen(parent);
+                minecraft.gui.setScreen(parent);
             }
         }).bounds(centerX - 75, height - 24, 150, 18).build());
     }

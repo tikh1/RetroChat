@@ -76,7 +76,7 @@ public class RetroChatClient implements ClientModInitializer {
 
         // Register tick event for key toggles and window minimization
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            Screen currentScreen = client.screen;
+            Screen currentScreen = client.gui.screen();
             if (lastScreen != null && currentScreen == null) {
                 ConversationManager.getInstance().minimizeUnpinnedWindows();
                 RetroChatOverlay.getInstance().unfocusAll();
@@ -86,10 +86,10 @@ public class RetroChatClient implements ClientModInitializer {
             while (toggleChatKey.consumeClick()) {
                 if (!RetroChatConfig.getInstance().modEnabled) continue;
                 if (client.level != null) {
-                    if (client.screen == null) {
-                        client.setScreen(new RetroChatOverlayScreen());
-                    } else if (client.screen instanceof RetroChatOverlayScreen) {
-                        client.setScreen(null);
+                    if (client.gui.screen() == null) {
+                        client.gui.setScreen(new RetroChatOverlayScreen());
+                    } else if (client.gui.screen() instanceof RetroChatOverlayScreen) {
+                        client.gui.setScreen(null);
                     }
                 }
             }
@@ -98,7 +98,10 @@ public class RetroChatClient implements ClientModInitializer {
         // Register HUD element rendering
         HudElementRegistry.addLast(Identifier.parse("retrochat:hud"), (extractor, deltaTracker) -> {
             if (!RetroChatConfig.getInstance().modEnabled) return;
-            RetroChatOverlay.getInstance().renderHud(extractor, deltaTracker);
+            Minecraft client = Minecraft.getInstance();
+            if (client.gui.screen() == null) {
+                RetroChatOverlay.getInstance().renderHud(extractor, deltaTracker);
+            }
         });
 
         // Register Screen rendering and input events for non-RetroChat screens
@@ -228,6 +231,6 @@ public class RetroChatClient implements ClientModInitializer {
             ConversationManager.getInstance().resetScope();
         });
 
-        LOGGER.info("[RetroChat] Initialized successfully on Fabric 26.1!");
+        LOGGER.info("[RetroChat] Initialized successfully on Fabric 26.2!");
     }
 }
