@@ -158,7 +158,7 @@ public class ChatWindowWidget {
 
         GuiUtils.drawBeveledBox(context, msgAreaX, msgAreaY, msgAreaWidth, msgAreaHeight, GuiUtils.INNER_BOX_BG, GuiUtils.INNER_BOX_LIGHT, GuiUtils.INNER_BOX_DARK);
 
-        renderMessages(context, font, msgAreaX + 2, msgAreaY + 2, msgAreaWidth - 4, msgAreaHeight - 4);
+        renderMessages(context, font, mouseX, mouseY, msgAreaX + 2, msgAreaY + 2, msgAreaWidth - 4, msgAreaHeight - 4);
 
         if (inputField != null) {
             if (isBlocked) {
@@ -262,7 +262,7 @@ public class ChatWindowWidget {
         }
     }
 
-    private void renderMessages(GuiGraphics context, Font font, int areaX, int areaY, int areaWidth, int areaHeight) {
+    private void renderMessages(GuiGraphics context, Font font, int mouseX, int mouseY, int areaX, int areaY, int areaWidth, int areaHeight) {
         Conversation conv = ConversationManager.getInstance().getConversation(playerName);
         if (conv == null || conv.getMessages().isEmpty()) {
             context.drawString(font, LanguageManager.get("chat.no_messages"), areaX + 4, areaY + 6, 0xFF5D7866, false);
@@ -294,8 +294,14 @@ public class ChatWindowWidget {
 
             PlayerSkin skin = msg.isIncoming() ? incomingSkin : mySkin;
             if (msg.isIncoming()) {
-                fullMsg.append(Component.literal(playerName + ": ").withStyle(s -> s.withColor(0x4ADE80)));
-                fullMsg.append(Component.literal(msg.getContent()).withStyle(s -> s.withColor(0xE2E8F0)));
+                if (msg.wasBlocked()) {
+                    fullMsg.append(Component.literal("[🚫] ").withStyle(s -> s.withColor(0xFFFF5555)));
+                    fullMsg.append(Component.literal(playerName + ": ").withStyle(s -> s.withColor(0xFFB07070)));
+                    fullMsg.append(Component.literal(msg.getContent()).withStyle(s -> s.withColor(0xFFA59292)));
+                } else {
+                    fullMsg.append(Component.literal(playerName + ": ").withStyle(s -> s.withColor(0x4ADE80)));
+                    fullMsg.append(Component.literal(msg.getContent()).withStyle(s -> s.withColor(0xE2E8F0)));
+                }
             } else {
                 String youStr = LanguageManager.get("chat.you") + ": ";
                 fullMsg.append(Component.literal(youStr).withStyle(s -> s.withColor(0xF97316)));
@@ -305,9 +311,9 @@ public class ChatWindowWidget {
             List<FormattedCharSequence> wrapped = font.split(fullMsg, availWidth);
             for (int i = 0; i < wrapped.size(); i++) {
                 if (i == 0 && showPlayerHeads) {
-                    renderedLines.add(new MessageLine(wrapped.get(i), skin, timeWidth + 2));
+                    renderedLines.add(new MessageLine(wrapped.get(i), skin, timeWidth + 2, msg.wasBlocked()));
                 } else {
-                    renderedLines.add(new MessageLine(wrapped.get(i), null, 0));
+                    renderedLines.add(new MessageLine(wrapped.get(i), null, 0, msg.wasBlocked()));
                 }
             }
         }
@@ -318,6 +324,7 @@ public class ChatWindowWidget {
 
         context.enableScissor(areaX + 1, areaY + 1, areaX + areaWidth - 1, areaY + areaHeight - 1);
 
+        String hoveredBlockedTooltip = null;
         int currentY = areaY + areaHeight - totalHeight + scrollOffset;
         for (MessageLine line : renderedLines) {
             if (currentY + 10 >= areaY && currentY <= areaY + areaHeight) {
@@ -325,11 +332,19 @@ public class ChatWindowWidget {
                     GuiUtils.drawPlayerHead(context, line.headSkin, areaX + 4 + line.headXOffset, currentY, 8);
                 }
                 context.drawString(font, line.text, areaX + 4, currentY, 0xFFFFFFFF, true);
+
+                if (line.wasBlocked && mouseX >= areaX && mouseX <= areaX + areaWidth && mouseY >= currentY && mouseY < currentY + 10) {
+                    hoveredBlockedTooltip = LanguageManager.get("chat.sent_while_blocked");
+                }
             }
             currentY += 10;
         }
 
         context.disableScissor();
+
+        if (hoveredBlockedTooltip != null) {
+            context.renderTooltip(font, Component.literal(hoveredBlockedTooltip), mouseX, mouseY);
+        }
 
         if (maxScroll > 0) {
             int scrollbarHeight = Math.max(10, (int) ((float) areaHeight / totalHeight * areaHeight));
@@ -343,11 +358,13 @@ public class ChatWindowWidget {
         final FormattedCharSequence text;
         final PlayerSkin headSkin;
         final int headXOffset;
+        final boolean wasBlocked;
 
-        MessageLine(FormattedCharSequence text, PlayerSkin headSkin, int headXOffset) {
+        MessageLine(FormattedCharSequence text, PlayerSkin headSkin, int headXOffset, boolean wasBlocked) {
             this.text = text;
             this.headSkin = headSkin;
             this.headXOffset = headXOffset;
+            this.wasBlocked = wasBlocked;
         }
     }
 
