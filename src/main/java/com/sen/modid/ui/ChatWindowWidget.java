@@ -259,7 +259,7 @@ public class ChatWindowWidget {
             GuiUtils.drawPlayerHead(context, skin, headX, y + 4, 10);
 
             if (unread > 0) {
-                GuiUtils.drawBadge(context, tr, x + tabWidth - 14, y + 2, unread);
+                GuiUtils.drawBadge(context, tr, x + tabWidth - 8, y - 3, unread);
             }
 
             if (hovered) {
