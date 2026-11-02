@@ -22,16 +22,18 @@ public class RetroChatClientEventHandler {
 
     private static final Pattern[] INCOMING_PATTERNS = new Pattern[] {
         Pattern.compile("^(\\w+) whispers to you: (.*)$", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("^\\[(\\w+) -> (?:me|you)\\]:? (.*)$", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("^(\\w+) -> (?:me|you): (.*)$", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("^(\\w+) sana fısıldıyor: (.*)$", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("^\\[(\\w+) -> (?:me|you|bana)\\]:? (.*)$", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("^(\\w+) -> (?:me|you|bana): (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^\\[from (\\w+)\\]:? (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^(\\w+) whispers: (.*)$", Pattern.CASE_INSENSITIVE)
     };
 
     private static final Pattern[] OUTGOING_PATTERNS = new Pattern[] {
         Pattern.compile("^You whisper to (\\w+): (.*)$", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("^\\[(?:me|you) -> (\\w+)\\]:? (.*)$", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("^(?:me|you) -> (\\w+): (.*)$", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("^(?:Sen|Siz) (\\w+) kişisine fısıldıyorsunuz: (.*)$", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("^\\[(?:me|you|sen|ben) -> (\\w+)\\]:? (.*)$", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("^(?:me|you|sen|ben) -> (\\w+): (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^\\[to (\\w+)\\]:? (.*)$", Pattern.CASE_INSENSITIVE)
     };
 
@@ -64,7 +66,7 @@ public class RetroChatClientEventHandler {
                 }
                 long timestamp = Instant.now().toEpochMilli();
 
-                DirectMessage dm = new DirectMessage(senderUuid, senderName, null, "me", content, timestamp, isBlocked, false, isBlocked);
+                DirectMessage dm = new DirectMessage(senderUuid, senderName, null, "me", content, timestamp, true, isBlocked, isBlocked);
                 ConversationManager.getInstance().addMessage(senderName, senderUuid, dm);
 
                 if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
@@ -112,7 +114,7 @@ public class RetroChatClientEventHandler {
                     event.setCanceled(true);
                 }
                 String content = m.group(2);
-                DirectMessage dm = new DirectMessage(null, sender, null, "me", content, Instant.now().toEpochMilli(), isBlocked, false, isBlocked);
+                DirectMessage dm = new DirectMessage(null, sender, null, "me", content, Instant.now().toEpochMilli(), true, isBlocked, isBlocked);
                 ConversationManager.getInstance().addMessage(sender, null, dm);
                 if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
                     event.setCanceled(true);

@@ -36,6 +36,7 @@ public class ChatWindowWidget {
     private int width;
     private int height;
     private int currentTabWidth = 120;
+    private boolean isRenderedAsTab = false;
 
     private EditBox inputField;
     private int scrollOffset = 0;
@@ -112,6 +113,7 @@ public class ChatWindowWidget {
         ConversationManager cm = ConversationManager.getInstance();
         ConversationManager.WindowState state = cm.getWindowState(playerName);
         if (state == ConversationManager.WindowState.CLOSED) return;
+        this.isRenderedAsTab = false;
 
         if (isFocused && state == ConversationManager.WindowState.OPEN) {
             cm.markAsRead(playerName);
@@ -121,7 +123,7 @@ public class ChatWindowWidget {
         Font font = client.font;
         PlayerSkin skin = getSkinTextures();
 
-        if (state == ConversationManager.WindowState.MINIMIZED) {
+        if (state == ConversationManager.WindowState.MINIMIZED || isRenderedAsTab) {
             renderMinimizedTab(context, font, skin, mouseX, mouseY, currentTabWidth);
             return;
         }
@@ -203,6 +205,7 @@ public class ChatWindowWidget {
 
     public void renderAsTab(GuiGraphics context, int mouseX, int mouseY, float delta, int actualTabWidth) {
         this.currentTabWidth = actualTabWidth;
+        this.isRenderedAsTab = true;
         Minecraft client = Minecraft.getInstance();
         Font font = client.font;
         PlayerSkin skin = getSkinTextures();
@@ -295,7 +298,7 @@ public class ChatWindowWidget {
             PlayerSkin skin = msg.isIncoming() ? incomingSkin : mySkin;
             if (msg.isIncoming()) {
                 if (msg.wasBlocked()) {
-                    fullMsg.append(Component.literal("[🚫] ").withStyle(s -> s.withColor(0xFFFF5555)));
+                    fullMsg.append(Component.literal("[X] ").withStyle(s -> s.withColor(0xFFFF5555).withBold(true)));
                     fullMsg.append(Component.literal(playerName + ": ").withStyle(s -> s.withColor(0xFFB07070)));
                     fullMsg.append(Component.literal(msg.getContent()).withStyle(s -> s.withColor(0xFFA59292)));
                 } else {
@@ -382,12 +385,18 @@ public class ChatWindowWidget {
 
     public void setFocused(boolean focused) {
         this.isFocused = focused;
+        if (!focused) {
+            this.emojiPickerOpen = false;
+        }
         if (this.inputField != null) {
             this.inputField.setFocused(focused);
         }
     }
 
     public boolean isFocused() {
+        if (ConversationManager.getInstance().getWindowState(playerName) != ConversationManager.WindowState.OPEN) {
+            return false;
+        }
         return isFocused;
     }
 
@@ -396,7 +405,7 @@ public class ChatWindowWidget {
         ConversationManager.WindowState state = cm.getWindowState(playerName);
         if (state == ConversationManager.WindowState.CLOSED) return false;
 
-        if (state == ConversationManager.WindowState.MINIMIZED) {
+        if (state == ConversationManager.WindowState.MINIMIZED || isRenderedAsTab) {
             int currentWidth = this.currentTabWidth;
             if (mouseX >= x && mouseX <= x + currentWidth && mouseY >= y && mouseY <= y + HEADER_HEIGHT) {
                 if (currentWidth >= 46) {
@@ -508,7 +517,7 @@ public class ChatWindowWidget {
     }
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (!isFocused || inputField == null) return false;
+        if (!isFocused() || inputField == null) return false;
 
         if (keyCode == 256) {
             if (emojiPickerOpen) {
@@ -533,7 +542,7 @@ public class ChatWindowWidget {
     }
 
     public boolean charTyped(char chr, int modifiers) {
-        if (!isFocused || inputField == null) return false;
+        if (!isFocused() || inputField == null) return false;
         if (RetroChatConfig.getInstance().isPlayerBlocked(playerName)) {
             return false;
         }
