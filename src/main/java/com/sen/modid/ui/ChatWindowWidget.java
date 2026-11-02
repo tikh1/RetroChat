@@ -39,6 +39,9 @@ public class ChatWindowWidget {
     private boolean isRenderedAsTab = false;
 
     private TextFieldWidget inputField;
+    private TextFieldWidget searchField;
+    private boolean searchOpen = false;
+    private String searchQuery = "";
     private int scrollOffset = 0;
     private int maxScroll = 0;
 
@@ -68,6 +71,16 @@ public class ChatWindowWidget {
         inputField.setPlaceholder(Text.literal(LanguageManager.get("chat.type_message")));
         inputField.setDrawsBackground(true);
         inputField.setFocusUnlocked(true);
+
+        searchField = new TextFieldWidget(textRenderer, x + 4, y + HEADER_HEIGHT + 3, width - 22, 13, Text.literal(""));
+        searchField.setMaxLength(32);
+        searchField.setPlaceholder(Text.literal(LanguageManager.get("chat.search_messages")));
+        searchField.setDrawsBackground(true);
+        searchField.setFocusUnlocked(true);
+        searchField.setChangedListener(q -> {
+            this.searchQuery = q.trim().toLowerCase();
+            this.scrollOffset = 0;
+        });
     }
 
     public void setPosition(int x, int y) {
@@ -77,6 +90,11 @@ public class ChatWindowWidget {
             inputField.setX(x + 4);
             inputField.setY(y + height - 32);
             inputField.setWidth(width - 8);
+        }
+        if (searchField != null) {
+            searchField.setX(x + 4);
+            searchField.setY(y + HEADER_HEIGHT + 3);
+            searchField.setWidth(width - 22);
         }
     }
 
@@ -136,27 +154,39 @@ public class ChatWindowWidget {
 
         String displayName = isBlocked ? playerName + " [X]" : playerName;
         int nameColor = isBlocked ? 0xFFFF7777 : 0xFFFFFFFF;
-        String trimmedName = tr.trimToWidth(displayName, width - 65);
+        String trimmedName = tr.trimToWidth(displayName, width - 78);
         context.drawText(tr, trimmedName, x + 18, y + 5, nameColor, true);
 
         int btnY = y + 3;
         int closeBtnX = x + width - 15;
         int minBtnX = x + width - 29;
         int pinBtnX = x + width - 43;
+        int searchBtnX = x + width - 57;
 
         boolean closeHovered = mouseX >= closeBtnX && mouseX <= closeBtnX + 12 && mouseY >= btnY && mouseY <= btnY + 12;
         boolean minHovered = mouseX >= minBtnX && mouseX <= minBtnX + 12 && mouseY >= btnY && mouseY <= btnY + 12;
         boolean pinHovered = mouseX >= pinBtnX && mouseX <= pinBtnX + 12 && mouseY >= btnY && mouseY <= btnY + 12;
+        boolean searchHovered = mouseX >= searchBtnX && mouseX <= searchBtnX + 12 && mouseY >= btnY && mouseY <= btnY + 12;
 
         boolean isPinned = cm.isWindowPinned(playerName);
+        GuiUtils.drawSearchButton(context, searchBtnX, btnY, 12, 12, searchOpen, searchHovered);
         GuiUtils.drawPinButton(context, pinBtnX, btnY, 12, 12, isPinned, pinHovered);
         GuiUtils.drawMinimizeButton(context, minBtnX, btnY, 12, 12, minHovered);
         GuiUtils.drawCloseButton(context, closeBtnX, btnY, 12, 12, closeHovered);
 
+        int searchBarOffset = searchOpen ? 18 : 0;
         int msgAreaX = x + 3;
-        int msgAreaY = y + HEADER_HEIGHT + 2;
+        int msgAreaY = y + HEADER_HEIGHT + 2 + searchBarOffset;
         int msgAreaWidth = width - 6;
-        int msgAreaHeight = height - HEADER_HEIGHT - 37;
+        int msgAreaHeight = height - HEADER_HEIGHT - 37 - searchBarOffset;
+
+        if (searchOpen && searchField != null) {
+            searchField.render(context, mouseX, mouseY, delta);
+            int clearBtnX = x + width - 15;
+            int clearBtnY = y + HEADER_HEIGHT + 4;
+            boolean clearHovered = mouseX >= clearBtnX && mouseX <= clearBtnX + 11 && mouseY >= clearBtnY && mouseY <= clearBtnY + 11;
+            GuiUtils.drawCloseButton(context, clearBtnX, clearBtnY, 11, 11, clearHovered);
+        }
 
         GuiUtils.drawBeveledBox(context, msgAreaX, msgAreaY, msgAreaWidth, msgAreaHeight, GuiUtils.INNER_BOX_BG, GuiUtils.INNER_BOX_LIGHT, GuiUtils.INNER_BOX_DARK);
 
@@ -173,6 +203,17 @@ public class ChatWindowWidget {
             }
             inputField.render(context, mouseX, mouseY, delta);
         }
+
+        int coordBtnX = x + 4;
+        int coordBtnY = y + height - 14;
+        int coordBtnW = 26;
+        int coordBtnH = 11;
+
+        boolean coordHovered = mouseX >= coordBtnX && mouseX <= coordBtnX + coordBtnW && mouseY >= coordBtnY && mouseY <= coordBtnY + coordBtnH;
+        GuiUtils.drawButtonBox(context, coordBtnX, coordBtnY, coordBtnW, coordBtnH, coordHovered);
+        int coordTextW = tr.getWidth("XYZ");
+        int coordColor = coordHovered ? GuiUtils.ORANGE_ACCENT_HOVER : 0xFFB8D5C0;
+        context.drawText(tr, "XYZ", coordBtnX + (coordBtnW - coordTextW) / 2, coordBtnY + 2, coordColor, false);
 
         int emojiBtnX = x + width - 18;
         int emojiBtnY = y + height - 14;
@@ -200,6 +241,12 @@ public class ChatWindowWidget {
             int panelX = x + width - panelW - 4;
             int panelY = y + height - 33 - panelH;
             emojiPicker.render(context, tr, mouseX, mouseY, panelX, panelY, panelW, panelH);
+        }
+
+        if (coordHovered) {
+            context.drawTooltip(tr, Text.literal(LanguageManager.get("chat.insert_coords")), mouseX, mouseY);
+        } else if (searchHovered) {
+            context.drawTooltip(tr, Text.literal(LanguageManager.get("chat.search_toggle") + " (Ctrl+F)"), mouseX, mouseY);
         }
     }
 
@@ -270,12 +317,25 @@ public class ChatWindowWidget {
 
     private void renderMessages(DrawContext context, TextRenderer tr, int mouseX, int mouseY, int areaX, int areaY, int areaWidth, int areaHeight) {
         Conversation conv = ConversationManager.getInstance().getConversation(playerName);
-        if (conv == null || conv.getMessages().isEmpty()) {
-            context.drawText(tr, LanguageManager.get("chat.no_messages"), areaX + 4, areaY + 6, 0xFF5D7866, false);
+        if (conv == null) return;
+
+        List<DirectMessage> allMessages = conv.getMessages();
+        List<DirectMessage> messagesToRender;
+        if (searchOpen && !searchQuery.isEmpty()) {
+            messagesToRender = allMessages.stream()
+                .filter(m -> m.getContent() != null && m.getContent().toLowerCase().contains(searchQuery))
+                .toList();
+        } else {
+            messagesToRender = allMessages;
+        }
+
+        if (messagesToRender.isEmpty()) {
+            String emptyText = searchOpen ? LanguageManager.get("chat.no_search_results") : LanguageManager.get("chat.no_messages");
+            context.drawText(tr, emptyText, areaX + 4, areaY + 6, 0xFF5D7866, false);
             return;
         }
 
-        List<DirectMessage> messages = conv.getMessages();
+        List<DirectMessage> messages = messagesToRender;
         List<MessageLine> renderedLines = new ArrayList<>();
         boolean showTimestamps = RetroChatConfig.getInstance().showTimestamps;
         boolean showPlayerHeads = RetroChatConfig.getInstance().showPlayerHeads;
@@ -389,6 +449,9 @@ public class ChatWindowWidget {
     public void setFocused(boolean focused) {
         this.isFocused = focused;
         if (!focused) {
+            if (this.searchField != null) {
+                this.searchField.setFocused(false);
+            }
             this.emojiPickerOpen = false;
         }
         if (this.inputField != null) {
@@ -439,6 +502,7 @@ public class ChatWindowWidget {
                 int closeBtnX = x + width - 15;
                 int minBtnX = x + width - 29;
                 int pinBtnX = x + width - 43;
+                int searchBtnX = x + width - 57;
 
                 if (mouseX >= closeBtnX && mouseX <= closeBtnX + 12) {
                     GuiUtils.playClickSound();
@@ -455,6 +519,43 @@ public class ChatWindowWidget {
                     cm.toggleWindowPinned(playerName);
                     return true;
                 }
+                if (mouseX >= searchBtnX && mouseX <= searchBtnX + 12) {
+                    GuiUtils.playClickSound();
+                    toggleSearch();
+                    return true;
+                }
+                return true;
+            }
+
+            if (searchOpen) {
+                int clearBtnX = x + width - 15;
+                int clearBtnY = y + HEADER_HEIGHT + 4;
+                if (mouseX >= clearBtnX && mouseX <= clearBtnX + 11 && mouseY >= clearBtnY && mouseY <= clearBtnY + 11) {
+                    GuiUtils.playClickSound();
+                    toggleSearch();
+                    return true;
+                }
+                if (searchField != null) {
+                    boolean hit = mouseX >= searchField.getX() && mouseX <= searchField.getX() + searchField.getWidth()
+                        && mouseY >= searchField.getY() && mouseY <= searchField.getY() + searchField.getHeight();
+                    searchField.setFocused(hit);
+                    if (hit) {
+                        this.isFocused = true;
+                        if (inputField != null) inputField.setFocused(false);
+                        searchField.mouseClicked(mouseX, mouseY, button);
+                        return true;
+                    }
+                }
+            }
+
+            int coordBtnX = x + 4;
+            int coordBtnY = y + height - 14;
+            int coordBtnW = 26;
+            int coordBtnH = 11;
+
+            if (mouseX >= coordBtnX && mouseX <= coordBtnX + coordBtnW && mouseY >= coordBtnY && mouseY <= coordBtnY + coordBtnH) {
+                GuiUtils.playClickSound();
+                insertCoordinates();
                 return true;
             }
 
@@ -527,11 +628,31 @@ public class ChatWindowWidget {
     }
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (!isFocused() || inputField == null) return false;
+        if (!isFocused()) return false;
+
+        if (searchOpen && searchField != null && searchField.isFocused()) {
+            if (keyCode == 256) { // Escape closes search
+                toggleSearch();
+                return true;
+            }
+            return searchField.keyPressed(keyCode, scanCode, modifiers);
+        }
+
+        if ((modifiers & 2) != 0 && keyCode == 70) { // Ctrl + F
+            GuiUtils.playClickSound();
+            toggleSearch();
+            return true;
+        }
+
+        if (inputField == null) return false;
 
         if (keyCode == 256) {
             if (emojiPickerOpen) {
                 emojiPickerOpen = false;
+                return true;
+            }
+            if (searchOpen) {
+                toggleSearch();
                 return true;
             }
             setFocused(false);
@@ -552,12 +673,60 @@ public class ChatWindowWidget {
     }
 
     public boolean charTyped(char chr, int modifiers) {
-        if (!isFocused() || inputField == null) return false;
+        if (!isFocused()) return false;
+        if (searchOpen && searchField != null && searchField.isFocused()) {
+            return searchField.charTyped(chr, modifiers);
+        }
+        if (inputField == null) return false;
         if (RetroChatConfig.getInstance().isPlayerBlocked(playerName)) {
             return false;
         }
         inputField.setFocused(true);
         return inputField.charTyped(chr, modifiers);
+    }
+
+    public boolean isSearchFocused() {
+        return searchOpen && searchField != null && searchField.isFocused();
+    }
+
+    private void toggleSearch() {
+        searchOpen = !searchOpen;
+        if (!searchOpen) {
+            searchQuery = "";
+            if (searchField != null) {
+                searchField.setText("");
+                searchField.setFocused(false);
+            }
+            focusInput();
+        } else {
+            this.isFocused = true;
+            if (searchField != null) {
+                searchField.setFocused(true);
+            }
+            if (inputField != null) {
+                inputField.setFocused(false);
+            }
+        }
+        scrollOffset = 0;
+    }
+
+    private void insertCoordinates() {
+        if (inputField == null) return;
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player != null) {
+            net.minecraft.util.math.BlockPos pos = client.player.getBlockPos();
+            String coords = String.format("[%d, %d, %d]", pos.getX(), pos.getY(), pos.getZ());
+            String current = inputField.getText();
+            if (!current.isEmpty() && !current.endsWith(" ")) {
+                current += " ";
+            }
+            String result = current + coords + " ";
+            if (result.length() > MAX_CHARACTERS) {
+                result = result.substring(0, MAX_CHARACTERS);
+            }
+            inputField.setText(result);
+            focusInput();
+        }
     }
 
     private void sendMessage() {
