@@ -73,45 +73,85 @@ public class ConversationManager {
         return currentServerKey;
     }
 
-    public void updateServerScope() {
+    private File getSingleplayerStorageDir() {
         MinecraftClient client = MinecraftClient.getInstance();
-        String newKey = "default";
         if (client.isInSingleplayer() && client.getServer() != null) {
             try {
-                String folderName = client.getServer().getSavePath(net.minecraft.util.WorldSavePath.ROOT).getFileName().toString();
-                newKey = "sp_" + folderName.replace(':', '_').replace('/', '_');
-            } catch (Exception e) {
-                newKey = "sp_" + client.getServer().getSaveProperties().getLevelName();
+                java.nio.file.Path rootPath = client.getServer().getSavePath(net.minecraft.util.WorldSavePath.ROOT);
+                return rootPath.toAbsolutePath().normalize().resolve("retrochat").toFile();
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    private File getSingleplayerUiStateFile() {
+        File spDir = getSingleplayerStorageDir();
+        if (spDir != null) {
+            return new File(spDir, "ui_state.json");
+        }
+        return null;
+    }
+
+    public synchronized void setSidebarCollapsed(boolean collapsed) {
+        if (currentServerKey.startsWith("sp_")) {
+            saveCurrentUiState();
+        } else {
+            RetroChatConfig.getInstance().setServerSidebarCollapsed(currentServerKey, collapsed);
+        }
+    }
+
+    public synchronized void saveCurrentUiState() {
+        if (currentServerKey == null || currentServerKey.trim().isEmpty() || currentServerKey.equals("default")) {
+            return;
+        }
+        if (currentServerKey.startsWith("sp_")) {
+            File uiFile = getSingleplayerUiStateFile();
+            if (uiFile != null) {
+                try {
+                    uiFile.getParentFile().mkdirs();
+                    RetroChatConfig.ServerUiState state = new RetroChatConfig.ServerUiState();
+                    RetroChatOverlay overlay = RetroChatOverlay.getInstance();
+                    if (overlay != null && overlay.getSidebarWidget() != null) {
+                        state.sidebarCollapsed = overlay.getSidebarWidget().isCollapsed();
+                    }
+                    for (Map.Entry<String, WindowState> entry : windowStates.entrySet()) {
+                        if (entry.getValue() != WindowState.CLOSED) {
+                            state.windowStates.put(entry.getKey(), entry.getValue().name());
+                        }
+                    }
+                    try (FileWriter writer = new FileWriter(uiFile, java.nio.charset.StandardCharsets.UTF_8)) {
+                        GSON.toJson(state, writer);
+                    }
+                } catch (Exception ignored) {}
             }
         } else {
-            ServerInfo server = client.getCurrentServerEntry();
-            if (server != null && server.address != null && !server.address.trim().isEmpty()) {
-                newKey = "mp_" + server.address.trim().replace(':', '_').replace('/', '_');
-            } else if (client.getNetworkHandler() != null && client.getNetworkHandler().getConnection() != null) {
-                java.net.SocketAddress socketAddr = client.getNetworkHandler().getConnection().getAddress();
-                if (socketAddr instanceof java.net.InetSocketAddress inet) {
-                    newKey = "mp_" + inet.getHostString() + "_" + inet.getPort();
-                } else if (socketAddr != null && !socketAddr.toString().startsWith("local:")) {
-                    newKey = "mp_" + socketAddr.toString().replace(':', '_').replace('/', '_');
-                }
-            }
-        }
-
-        if (!newKey.equals("default") && !newKey.equals(currentServerKey)) {
-            saveCurrentScope();
-            currentServerKey = newKey;
+            RetroChatConfig config = RetroChatConfig.getInstance();
             RetroChatOverlay overlay = RetroChatOverlay.getInstance();
-            if (overlay != null) {
-                overlay.clearWindows();
+            if (overlay != null && overlay.getSidebarWidget() != null) {
+                config.setServerSidebarCollapsed(currentServerKey, overlay.getSidebarWidget().isCollapsed());
             }
-            loadCurrentScope();
-            restoreServerUiState();
+            for (Map.Entry<String, WindowState> entry : windowStates.entrySet()) {
+                config.setServerWindowState(currentServerKey, entry.getKey(), entry.getValue().name());
+            }
         }
     }
 
     private void restoreServerUiState() {
-        RetroChatConfig config = RetroChatConfig.getInstance();
-        RetroChatConfig.ServerUiState uiState = config.getServerUiState(currentServerKey);
+        RetroChatConfig.ServerUiState uiState = null;
+        if (currentServerKey.startsWith("sp_")) {
+            File uiFile = getSingleplayerUiStateFile();
+            if (uiFile != null && uiFile.exists()) {
+                try (FileReader reader = new FileReader(uiFile, java.nio.charset.StandardCharsets.UTF_8)) {
+                    uiState = GSON.fromJson(reader, RetroChatConfig.ServerUiState.class);
+                } catch (Exception ignored) {}
+            }
+            if (uiState == null) {
+                uiState = new RetroChatConfig.ServerUiState();
+            }
+        } else {
+            RetroChatConfig config = RetroChatConfig.getInstance();
+            uiState = config.getServerUiState(currentServerKey);
+        }
 
         RetroChatOverlay overlay = RetroChatOverlay.getInstance();
         if (overlay != null && overlay.getSidebarWidget() != null) {
@@ -132,6 +172,48 @@ public class ConversationManager {
                     }
                 }
             } catch (Exception ignored) {}
+        }
+    }
+
+    public void updateServerScope() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        String newKey = "default";
+        if (client.isInSingleplayer() && client.getServer() != null) {
+            try {
+                java.nio.file.Path rootPath = client.getServer().getSavePath(net.minecraft.util.WorldSavePath.ROOT);
+                java.nio.file.Path normalized = rootPath.toAbsolutePath().normalize();
+                String folderName = normalized.getFileName() != null ? normalized.getFileName().toString() : "";
+                if (folderName.isEmpty() || folderName.equals(".")) {
+                    folderName = client.getServer().getSaveProperties().getLevelName();
+                }
+                newKey = "sp_" + folderName.replace(':', '_').replace('/', '_');
+            } catch (Exception e) {
+                newKey = "sp_" + client.getServer().getSaveProperties().getLevelName();
+            }
+        } else {
+            ServerInfo server = client.getCurrentServerEntry();
+            if (server != null && server.address != null && !server.address.trim().isEmpty()) {
+                newKey = "mp_" + server.address.trim().replace(':', '_').replace('/', '_');
+            } else if (client.getNetworkHandler() != null && client.getNetworkHandler().getConnection() != null) {
+                java.net.SocketAddress socketAddr = client.getNetworkHandler().getConnection().getAddress();
+                if (socketAddr instanceof java.net.InetSocketAddress inet) {
+                    newKey = "mp_" + inet.getHostString() + "_" + inet.getPort();
+                } else if (socketAddr != null && !socketAddr.toString().startsWith("local:")) {
+                    newKey = "mp_" + socketAddr.toString().replace(':', '_').replace('/', '_');
+                }
+            }
+        }
+
+        if (!newKey.equals("default") && !newKey.equals(currentServerKey)) {
+            saveCurrentScope();
+            saveCurrentUiState();
+            currentServerKey = newKey;
+            RetroChatOverlay overlay = RetroChatOverlay.getInstance();
+            if (overlay != null) {
+                overlay.clearWindows();
+            }
+            loadCurrentScope();
+            restoreServerUiState();
         }
     }
 
@@ -243,7 +325,11 @@ public class ConversationManager {
         } else {
             windowStates.put(key, state);
         }
-        RetroChatConfig.getInstance().setServerWindowState(currentServerKey, playerName, state.name());
+        if (currentServerKey.startsWith("sp_")) {
+            saveCurrentUiState();
+        } else {
+            RetroChatConfig.getInstance().setServerWindowState(currentServerKey, playerName, state.name());
+        }
         if (state == WindowState.OPEN) {
             markAsRead(playerName);
         }
@@ -314,6 +400,7 @@ public class ConversationManager {
 
     public synchronized void resetScope() {
         saveCurrentScope();
+        saveCurrentUiState();
         currentServerKey = "";
         conversations.clear();
         windowStates.clear();
@@ -332,7 +419,13 @@ public class ConversationManager {
     }
 
     private File getFileForScope(String scopeKey) {
-        String safeName = scopeKey.replaceAll("[^a-zA-Z0-9_.-]", "_") + ".json";
+        if (scopeKey != null && scopeKey.startsWith("sp_")) {
+            File spDir = getSingleplayerStorageDir();
+            if (spDir != null) {
+                return new File(spDir, "history.json");
+            }
+        }
+        String safeName = (scopeKey == null ? "default" : scopeKey).replaceAll("[^a-zA-Z0-9_.-]", "_") + ".json";
         return new File(STORAGE_DIR, safeName);
     }
 
