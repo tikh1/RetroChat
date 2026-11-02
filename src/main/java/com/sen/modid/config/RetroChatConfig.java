@@ -30,6 +30,7 @@ public class RetroChatConfig {
 
     public boolean showTimestamps = true;
     public boolean showPlayerHeads = true;
+    public boolean compactTabs = false;
     public String language = "auto";
 
     public static class ServerUiState {

@@ -243,6 +243,7 @@ public class LanguageManager {
                     + "  \"config.reset\": \"Reset\",\n"
                     + "  \"config.timestamps\": \"Timestamps\",\n"
                     + "  \"config.player_heads\": \"Player Heads\",\n"
+                    + "  \"config.compact_tabs\": \"Compact Tabs\",\n"
                     + "  \"config.language\": \"Language\",\n"
                     + "  \"config.keybind_hint\": \"Tip: Press [T] to chat. An optional key can be set in Controls.\",\n"
                     + "  \"config.player_to_block\": \"Player to block...\",\n"
@@ -336,6 +337,7 @@ public class LanguageManager {
         map.put("config.reset", "Reset");
         map.put("config.timestamps", "Timestamps");
         map.put("config.player_heads", "Player Heads");
+        map.put("config.compact_tabs", "Compact Tabs");
         map.put("config.language", "Language");
         map.put("config.language_help", "How to add new languages:\nCheck config/retrochat/lang/ and read HOW_TO_ADD_NEW_LANGUAGE.txt\n(Click to open folder)");
         map.put("config.keybind_hint", "Tip: Press [T] to chat. An optional key can be set in Controls.");
@@ -376,6 +378,7 @@ public class LanguageManager {
         map.put("config.reset", "Sıfırla");
         map.put("config.timestamps", "Zaman Damgası");
         map.put("config.player_heads", "Oyuncu Kafaları");
+        map.put("config.compact_tabs", "Kompakt Sekmeler");
         map.put("config.language", "Dil");
         map.put("config.language_help", "Nasıl yeni dil eklenir:\nconfig/retrochat/lang/ klasöründeki HOW_TO_ADD_NEW_LANGUAGE.txt rehberine bakın.\n(Klasörü açmak için tıklayın)");
         map.put("config.keybind_hint", "İpucu: Sohbet için [T] tuşunu kullanın. Özel tuş Kontroller'den atanabilir.");
@@ -416,6 +419,7 @@ public class LanguageManager {
         map.put("config.reset", "Zurücksetzen");
         map.put("config.timestamps", "Zeitstempel");
         map.put("config.player_heads", "Spielerköpfe");
+        map.put("config.compact_tabs", "Kompakte Tabs");
         map.put("config.language", "Sprache");
         map.put("config.language_help", "So fügst du Sprachen hinzu:\nSiehe HOW_TO_ADD_NEW_LANGUAGE.txt im Ordner config/retrochat/lang/\n(Klicken, um Ordner zu öffnen)");
         map.put("config.keybind_hint", "Tipp: Drücke [T] zum Chatten. Eine optionale Taste kann in der Steuerung belegt werden.");
@@ -456,6 +460,7 @@ public class LanguageManager {
         map.put("config.reset", "Сброс");
         map.put("config.timestamps", "Время сообщений");
         map.put("config.player_heads", "Головы игроков");
+        map.put("config.compact_tabs", "Компактные вкладки");
         map.put("config.language", "Язык");
         map.put("config.language_help", "Как добавить новый язык:\nПроверьте config/retrochat/lang/ и прочтите HOW_TO_ADD_NEW_LANGUAGE.txt\n(Нажмите, чтобы открыть папку)");
         map.put("config.keybind_hint", "Подсказка: Нажмите [T] для чата. Клавишу можно переназначить в управлении.");
@@ -495,6 +500,7 @@ public class LanguageManager {
         map.put("config.reset", "Restablecer");
         map.put("config.timestamps", "Marcas de tiempo");
         map.put("config.player_heads", "Cabezas de jugadores");
+        map.put("config.compact_tabs", "Pestañas compactas");
         map.put("config.language", "Idioma");
         map.put("config.language_help", "Cómo añadir un nuevo idioma:\nRevisa config/retrochat/lang/ y lee HOW_TO_ADD_NEW_LANGUAGE.txt\n(Haz clic para abrir la carpeta)");
         map.put("config.keybind_hint", "Consejo: Pulsa [T] para chatear. Puedes asignar una tecla en Controles.");
@@ -534,6 +540,7 @@ public class LanguageManager {
         map.put("config.reset", "Réinitialiser");
         map.put("config.timestamps", "Horodatages");
         map.put("config.player_heads", "Têtes de joueurs");
+        map.put("config.compact_tabs", "Onglets compacts");
         map.put("config.language", "Langue");
         map.put("config.language_help", "Comment ajouter une nouvelle langue :\nConsultez config/retrochat/lang/ et lisez HOW_TO_ADD_NEW_LANGUAGE.txt\n(Cliquez pour ouvrir le dossier)");
         map.put("config.keybind_hint", "Astuce : Appuyez sur [T] pour discuter. Une touche peut être configurée dans Contrôles.");
