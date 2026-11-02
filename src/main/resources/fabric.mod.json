@@ -23,13 +23,10 @@
       "com.sen.modid.ui.RetroChatModMenu"
     ]
   },
-  "mixins": [
-    "retrochat.mixins.json"
-  ],
   "depends": {
-    "fabricloader": ">=0.16.0",
-    "minecraft": "~1.21.4",
-    "java": ">=21",
+    "fabricloader": ">=0.20.0",
+    "minecraft": ">=26.1",
+    "java": ">=25",
     "fabric-api": "*"
   }
 }

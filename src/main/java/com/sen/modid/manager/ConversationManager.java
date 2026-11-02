@@ -7,11 +7,11 @@ import com.sen.modid.config.RetroChatConfig;
 import com.sen.modid.model.Conversation;
 import com.sen.modid.model.DirectMessage;
 import com.sen.modid.ui.RetroChatOverlay;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.sounds.SoundEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ServerInfo;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.sound.SoundEvents;
 
 import java.io.File;
 import java.io.FileReader;
@@ -69,22 +69,22 @@ public class ConversationManager {
         STORAGE_DIR.mkdirs();
     }
 
-    public String getCurrentServerKey() {
+        public String getCurrentServerKey() {
         return currentServerKey;
     }
 
     private File cachedSingleplayerStorageDir = null;
 
     public String getLocalPlayerName() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         if (client.player != null && client.player.getGameProfile() != null) {
-            String name = client.player.getGameProfile().getName();
+            String name = client.player.getGameProfile().name();
             if (name != null && !name.trim().isEmpty()) {
                 return name.trim().toLowerCase();
             }
         }
-        if (client.getSession() != null && client.getSession().getUsername() != null) {
-            String name = client.getSession().getUsername();
+        if (client.getUser() != null && client.getUser().getName() != null) {
+            String name = client.getUser().getName();
             if (name != null && !name.trim().isEmpty()) {
                 return name.trim().toLowerCase();
             }
@@ -93,10 +93,10 @@ public class ConversationManager {
     }
 
     private File getSingleplayerStorageDir() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.isInSingleplayer() && client.getServer() != null) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.hasSingleplayerServer() && client.getSingleplayerServer() != null) {
             try {
-                java.nio.file.Path rootPath = client.getServer().getSavePath(net.minecraft.util.WorldSavePath.ROOT);
+                java.nio.file.Path rootPath = client.getSingleplayerServer().getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT);
                 File dir = rootPath.toAbsolutePath().normalize().resolve("retrochat").toFile();
                 this.cachedSingleplayerStorageDir = dir;
                 return dir;
@@ -197,27 +197,27 @@ public class ConversationManager {
     }
 
     public void updateServerScope() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         String newKey = "default";
         String playerPrefix = "u_" + getLocalPlayerName();
-        if (client.isInSingleplayer() && client.getServer() != null) {
+        if (client.hasSingleplayerServer() && client.getSingleplayerServer() != null) {
             try {
-                java.nio.file.Path rootPath = client.getServer().getSavePath(net.minecraft.util.WorldSavePath.ROOT);
+                java.nio.file.Path rootPath = client.getSingleplayerServer().getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT);
                 java.nio.file.Path normalized = rootPath.toAbsolutePath().normalize();
                 String folderName = normalized.getFileName() != null ? normalized.getFileName().toString() : "";
                 if (folderName.isEmpty() || folderName.equals(".")) {
-                    folderName = client.getServer().getSaveProperties().getLevelName();
+                    folderName = client.getSingleplayerServer().getWorldData().getLevelName();
                 }
                 newKey = playerPrefix + "_sp_" + folderName.replace(':', '_').replace('/', '_');
             } catch (Exception e) {
-                newKey = playerPrefix + "_sp_" + client.getServer().getSaveProperties().getLevelName();
+                newKey = playerPrefix + "_sp_" + client.getSingleplayerServer().getWorldData().getLevelName();
             }
         } else {
-            ServerInfo server = client.getCurrentServerEntry();
-            if (server != null && server.address != null && !server.address.trim().isEmpty()) {
-                newKey = playerPrefix + "_mp_" + server.address.trim().replace(':', '_').replace('/', '_');
-            } else if (client.getNetworkHandler() != null && client.getNetworkHandler().getConnection() != null) {
-                java.net.SocketAddress socketAddr = client.getNetworkHandler().getConnection().getAddress();
+            ServerData server = client.getCurrentServer();
+            if (server != null && server.ip != null && !server.ip.trim().isEmpty()) {
+                newKey = playerPrefix + "_mp_" + server.ip.trim().replace(':', '_').replace('/', '_');
+            } else if (client.getConnection() != null && client.getConnection().getConnection() != null) {
+                java.net.SocketAddress socketAddr = client.getConnection().getConnection().getRemoteAddress();
                 if (socketAddr instanceof java.net.InetSocketAddress inet) {
                     newKey = playerPrefix + "_mp_" + inet.getHostString() + "_" + inet.getPort();
                 } else if (socketAddr != null && !socketAddr.toString().startsWith("local:")) {
@@ -266,6 +266,9 @@ public class ConversationManager {
     }
 
     public synchronized void addLocalOutgoingMessage(String targetName, UUID targetUuid, DirectMessage message) {
+        if (targetName != null && RetroChatConfig.getInstance().isPlayerBlocked(targetName)) {
+            return;
+        }
         if (targetName != null && message != null && message.getContent() != null) {
             pendingOutgoings.add(new PendingOutgoing(targetName, message.getContent(), System.currentTimeMillis()));
         }
@@ -323,12 +326,12 @@ public class ConversationManager {
     }
 
     public void playNotificationSound() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         if (client != null && client.getSoundManager() != null) {
             float volume = RetroChatConfig.getInstance().soundVolume;
             if (volume > 0.0f) {
                 client.getSoundManager().play(
-                    PositionedSoundInstance.master(SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 1.0f, volume)
+                    SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_BELL.value(), 1.0f, volume)
                 );
             }
         }
@@ -370,6 +373,14 @@ public class ConversationManager {
                 listener.onConversationUpdated(conv);
             }
         }
+    }
+
+    public synchronized int getTotalUnreadCount() {
+        int total = 0;
+        for (Conversation conv : conversations.values()) {
+            total += conv.getUnreadCount();
+        }
+        return total;
     }
 
     public boolean isWindowPinned(String playerName) {
@@ -464,9 +475,11 @@ public class ConversationManager {
             });
 
             File file = getFileForScope(currentServerKey);
-            file.getParentFile().mkdirs();
-            try (FileWriter writer = new FileWriter(file, java.nio.charset.StandardCharsets.UTF_8)) {
-                GSON.toJson(conversations, writer);
+            if (file != null) {
+                file.getParentFile().mkdirs();
+                try (FileWriter writer = new FileWriter(file, java.nio.charset.StandardCharsets.UTF_8)) {
+                    GSON.toJson(conversations, writer);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -480,7 +493,7 @@ public class ConversationManager {
         }
         try {
             File file = getFileForScope(currentServerKey);
-            if (file.exists()) {
+            if (file != null && file.exists()) {
                 try (FileReader reader = new FileReader(file, java.nio.charset.StandardCharsets.UTF_8)) {
                     Type type = new TypeToken<Map<String, Conversation>>(){}.getType();
                     Map<String, Conversation> loaded = GSON.fromJson(reader, type);
@@ -499,12 +512,5 @@ public class ConversationManager {
             e.printStackTrace();
         }
     }
-
-    public int getTotalUnreadCount() {
-        int total = 0;
-        for (Conversation c : conversations.values()) {
-            total += c.getUnreadCount();
-        }
-        return total;
-    }
 }
+

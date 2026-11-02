@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.sen.modid.config.RetroChatConfig;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 import java.io.File;
 import java.io.FileReader;
@@ -138,9 +138,9 @@ public class LanguageManager {
 
     private String detectMinecraftLanguage() {
         try {
-            MinecraftClient client = MinecraftClient.getInstance();
+            Minecraft client = Minecraft.getInstance();
             if (client != null && client.getLanguageManager() != null) {
-                String mcLang = client.getLanguageManager().getLanguage();
+                String mcLang = client.getLanguageManager().getSelected();
                 if (mcLang != null && !mcLang.isEmpty()) {
                     return mcLang.toLowerCase();
                 }

@@ -1,18 +1,21 @@
 package com.sen.modid.ui;
 
 import com.sen.modid.RetroChatClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.network.chat.Component;
 
 public class RetroChatOverlayScreen extends Screen {
 
     public RetroChatOverlayScreen() {
-        super(Text.literal("RetroChat Overlay"));
+        super(Component.literal("RetroChat Overlay"));
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
     }
 
@@ -23,32 +26,33 @@ public class RetroChatOverlayScreen extends Screen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(context, mouseX, mouseY, delta);
         RetroChatOverlay.getInstance().render(context, mouseX, mouseY, delta);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (RetroChatOverlay.getInstance().mouseClicked(mouseX, mouseY, button)) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (RetroChatOverlay.getInstance().mouseClicked(event.x(), event.y(), event.button())) {
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        if (RetroChatOverlay.getInstance().mouseDragged(mouseX, mouseY, button, deltaX, deltaY)) {
+    public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
+        if (RetroChatOverlay.getInstance().mouseDragged(event.x(), event.y(), event.button(), deltaX, deltaY)) {
             return true;
         }
-        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+        return super.mouseDragged(event, deltaX, deltaY);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (RetroChatOverlay.getInstance().mouseReleased(mouseX, mouseY, button)) {
+    public boolean mouseReleased(MouseButtonEvent event) {
+        if (RetroChatOverlay.getInstance().mouseReleased(event.x(), event.y(), event.button())) {
             return true;
         }
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     @Override
@@ -60,27 +64,27 @@ public class RetroChatOverlayScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (RetroChatOverlay.getInstance().keyPressed(keyCode, scanCode, modifiers)) {
+    public boolean keyPressed(KeyEvent event) {
+        if (RetroChatOverlay.getInstance().keyPressed(event.key(), event.scancode(), event.modifiers())) {
             return true;
         }
 
-        if (RetroChatClient.getToggleChatKey() != null && RetroChatClient.getToggleChatKey().matchesKey(keyCode, scanCode) && !RetroChatOverlay.getInstance().isAnyInputFocused()) {
-            this.close();
+        if (RetroChatClient.getToggleChatKey() != null && RetroChatClient.getToggleChatKey().matches(event) && !RetroChatOverlay.getInstance().isAnyInputFocused()) {
+            this.onClose();
             return true;
         }
-        if (keyCode == 256) {
-            this.close();
+        if (event.key() == 256) {
+            this.onClose();
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override
-    public boolean charTyped(char chr, int modifiers) {
-        if (RetroChatOverlay.getInstance().charTyped(chr, modifiers)) {
+    public boolean charTyped(CharacterEvent event) {
+        if (RetroChatOverlay.getInstance().charTyped((char) event.codepoint(), 0)) {
             return true;
         }
-        return super.charTyped(chr, modifiers);
+        return super.charTyped(event);
     }
 }

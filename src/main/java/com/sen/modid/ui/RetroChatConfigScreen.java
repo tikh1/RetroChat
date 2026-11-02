@@ -5,17 +5,21 @@ import com.sen.modid.lang.LanguageManager;
 import com.sen.modid.manager.ConversationManager;
 import com.sen.modid.model.Conversation;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.client.util.SkinTextures;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.PlayerFaceExtractor;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Util;
+import net.minecraft.world.entity.player.PlayerSkin;
 
 import java.io.File;
 import java.util.*;
@@ -29,13 +33,13 @@ public class RetroChatConfigScreen extends Screen {
     private int previewWidth = 220;
     private int previewHeight = 160;
 
-    private TextFieldWidget searchField;
+    private EditBox searchField;
     private String searchQuery = "";
     private int playerListScroll = 0;
     private int maxPlayerListScroll = 0;
 
     public RetroChatConfigScreen(Screen parent) {
-        super(Text.literal("RetroChat Settings"));
+        super(Component.literal("RetroChat Settings"));
         this.parent = parent;
         this.previewWidth = config.windowWidth;
         this.previewHeight = config.windowHeight;
@@ -46,37 +50,37 @@ public class RetroChatConfigScreen extends Screen {
         int centerX = width / 2;
         int startY = 20;
 
-        addDrawableChild(ButtonWidget.builder(
-            Text.literal(LanguageManager.get("config.mod_enabled") + ": " + (config.modEnabled ? "ON" : "OFF")),
+        addRenderableWidget(Button.builder(
+            Component.literal(LanguageManager.get("config.mod_enabled") + ": " + (config.modEnabled ? "ON" : "OFF")),
             button -> {
                 config.modEnabled = !config.modEnabled;
-                button.setMessage(Text.literal(LanguageManager.get("config.mod_enabled") + ": " + (config.modEnabled ? "ON" : "OFF")));
+                button.setMessage(Component.literal(LanguageManager.get("config.mod_enabled") + ": " + (config.modEnabled ? "ON" : "OFF")));
                 config.save();
             }
-        ).dimensions(centerX - 155, startY, 310, 20).build());
+        ).bounds(centerX - 155, startY, 310, 20).build());
 
-        addDrawableChild(ButtonWidget.builder(
-            Text.literal(LanguageManager.get("config.hide_dms") + ": " + (config.hideDmsInVanillaChat ? "ON" : "OFF")),
+        addRenderableWidget(Button.builder(
+            Component.literal(LanguageManager.get("config.hide_dms") + ": " + (config.hideDmsInVanillaChat ? "ON" : "OFF")),
             button -> {
                 config.hideDmsInVanillaChat = !config.hideDmsInVanillaChat;
-                button.setMessage(Text.literal(LanguageManager.get("config.hide_dms") + ": " + (config.hideDmsInVanillaChat ? "ON" : "OFF")));
+                button.setMessage(Component.literal(LanguageManager.get("config.hide_dms") + ": " + (config.hideDmsInVanillaChat ? "ON" : "OFF")));
                 config.save();
             }
-        ).dimensions(centerX - 155, startY + 22, 150, 20).build());
+        ).bounds(centerX - 155, startY + 22, 150, 20).build());
 
-        addDrawableChild(ButtonWidget.builder(
-            Text.literal(LanguageManager.get("config.sound") + ": " + (config.soundEnabled ? "ON" : "OFF")),
+        addRenderableWidget(Button.builder(
+            Component.literal(LanguageManager.get("config.sound") + ": " + (config.soundEnabled ? "ON" : "OFF")),
             button -> {
                 config.soundEnabled = !config.soundEnabled;
-                button.setMessage(Text.literal(LanguageManager.get("config.sound") + ": " + (config.soundEnabled ? "ON" : "OFF")));
+                button.setMessage(Component.literal(LanguageManager.get("config.sound") + ": " + (config.soundEnabled ? "ON" : "OFF")));
                 config.save();
             }
-        ).dimensions(centerX + 5, startY + 22, 150, 20).build());
+        ).bounds(centerX + 5, startY + 22, 150, 20).build());
 
-        addDrawableChild(new SliderWidget(centerX - 155, startY + 44, 150, 20, Text.literal(LanguageManager.get("config.volume") + ": " + (int)(config.soundVolume * 100) + "%"), config.soundVolume) {
+        addRenderableWidget(new AbstractSliderButton(centerX - 155, startY + 44, 150, 20, Component.literal(LanguageManager.get("config.volume") + ": " + (int)(config.soundVolume * 100) + "%"), config.soundVolume) {
             @Override
             protected void updateMessage() {
-                setMessage(Text.literal(LanguageManager.get("config.volume") + ": " + (int)(this.value * 100) + "%"));
+                setMessage(Component.literal(LanguageManager.get("config.volume") + ": " + (int)(this.value * 100) + "%"));
             }
 
             @Override
@@ -87,11 +91,11 @@ public class RetroChatConfigScreen extends Screen {
         });
 
         double scaleValue = (config.uiScale - 0.5f) / 1.0f;
-        addDrawableChild(new SliderWidget(centerX + 5, startY + 44, 150, 20, Text.literal(LanguageManager.get("config.ui_scale") + ": " + (int)(config.uiScale * 100) + "%"), scaleValue) {
+        addRenderableWidget(new AbstractSliderButton(centerX + 5, startY + 44, 150, 20, Component.literal(LanguageManager.get("config.ui_scale") + ": " + (int)(config.uiScale * 100) + "%"), scaleValue) {
             @Override
             protected void updateMessage() {
                 float currentScale = 0.5f + (float) this.value * 1.0f;
-                setMessage(Text.literal(LanguageManager.get("config.ui_scale") + ": " + (int)(currentScale * 100) + "%"));
+                setMessage(Component.literal(LanguageManager.get("config.ui_scale") + ": " + (int)(currentScale * 100) + "%"));
             }
 
             @Override
@@ -102,94 +106,94 @@ public class RetroChatConfigScreen extends Screen {
         });
 
         double widthValue = (double)(config.windowWidth - 160) / 160.0;
-        addDrawableChild(new PreviewSlider(centerX - 155, startY + 66, 108, 20, Text.literal(LanguageManager.get("config.width") + ": " + config.windowWidth + "px"), widthValue, true));
+        addRenderableWidget(new PreviewSlider(centerX - 155, startY + 66, 108, 20, Component.literal(LanguageManager.get("config.width") + ": " + config.windowWidth + "px"), widthValue, true));
 
-        addDrawableChild(ButtonWidget.builder(Text.literal(LanguageManager.get("config.reset")), b -> {
+        addRenderableWidget(Button.builder(Component.literal(LanguageManager.get("config.reset")), b -> {
             config.windowWidth = 220;
             previewWidth = 220;
             config.save();
-            clearAndInit();
-        }).dimensions(centerX - 43, startY + 66, 38, 20).build());
+            rebuildWidgets();
+        }).bounds(centerX - 43, startY + 66, 38, 20).build());
 
         double heightValue = (double)(config.windowHeight - 120) / 140.0;
-        addDrawableChild(new PreviewSlider(centerX + 5, startY + 66, 108, 20, Text.literal(LanguageManager.get("config.height") + ": " + config.windowHeight + "px"), heightValue, false));
+        addRenderableWidget(new PreviewSlider(centerX + 5, startY + 66, 108, 20, Component.literal(LanguageManager.get("config.height") + ": " + config.windowHeight + "px"), heightValue, false));
 
-        addDrawableChild(ButtonWidget.builder(Text.literal(LanguageManager.get("config.reset")), b -> {
+        addRenderableWidget(Button.builder(Component.literal(LanguageManager.get("config.reset")), b -> {
             config.windowHeight = 160;
             previewHeight = 160;
             config.save();
-            clearAndInit();
-        }).dimensions(centerX + 117, startY + 66, 38, 20).build());
+            rebuildWidgets();
+        }).bounds(centerX + 117, startY + 66, 38, 20).build());
 
-        addDrawableChild(ButtonWidget.builder(
-            Text.literal(LanguageManager.get("config.timestamps") + ": " + (config.showTimestamps ? "ON" : "OFF")),
+        addRenderableWidget(Button.builder(
+            Component.literal(LanguageManager.get("config.timestamps") + ": " + (config.showTimestamps ? "ON" : "OFF")),
             button -> {
                 config.showTimestamps = !config.showTimestamps;
-                button.setMessage(Text.literal(LanguageManager.get("config.timestamps") + ": " + (config.showTimestamps ? "ON" : "OFF")));
+                button.setMessage(Component.literal(LanguageManager.get("config.timestamps") + ": " + (config.showTimestamps ? "ON" : "OFF")));
                 config.save();
             }
-        ).dimensions(centerX - 155, startY + 88, 150, 20).build());
+        ).bounds(centerX - 155, startY + 88, 150, 20).build());
 
-        addDrawableChild(ButtonWidget.builder(
-            Text.literal(LanguageManager.get("config.player_heads") + ": " + (config.showPlayerHeads ? "ON" : "OFF")),
+        addRenderableWidget(Button.builder(
+            Component.literal(LanguageManager.get("config.player_heads") + ": " + (config.showPlayerHeads ? "ON" : "OFF")),
             button -> {
                 config.showPlayerHeads = !config.showPlayerHeads;
-                button.setMessage(Text.literal(LanguageManager.get("config.player_heads") + ": " + (config.showPlayerHeads ? "ON" : "OFF")));
+                button.setMessage(Component.literal(LanguageManager.get("config.player_heads") + ": " + (config.showPlayerHeads ? "ON" : "OFF")));
                 config.save();
             }
-        ).dimensions(centerX + 5, startY + 88, 150, 20).build());
+        ).bounds(centerX + 5, startY + 88, 150, 20).build());
 
-        addDrawableChild(ButtonWidget.builder(
-            Text.literal(LanguageManager.get("config.language") + ": " + LanguageManager.getInstance().getCurrentLanguageName()),
+        addRenderableWidget(Button.builder(
+            Component.literal(LanguageManager.get("config.language") + ": " + LanguageManager.getInstance().getCurrentLanguageName()),
             button -> {
                 LanguageManager.getInstance().cycleLanguage();
-                clearAndInit();
+                rebuildWidgets();
             }
-        ).dimensions(centerX - 155, startY + 110, 126, 20).build());
+        ).bounds(centerX - 155, startY + 110, 126, 20).build());
 
         File langDir = FabricLoader.getInstance().getConfigDir().resolve("retrochat").resolve("lang").toFile();
-        addDrawableChild(ButtonWidget.builder(Text.literal("?"), b -> {
+        addRenderableWidget(Button.builder(Component.literal("?"), b -> {
             if (langDir.exists()) {
-                Util.getOperatingSystem().open(langDir);
+                Util.getPlatform().openFile(langDir);
             }
         })
-        .tooltip(Tooltip.of(Text.literal(LanguageManager.get("config.language_help"))))
-        .dimensions(centerX - 25, startY + 110, 20, 20)
+        .tooltip(Tooltip.create(Component.literal(LanguageManager.get("config.language_help"))))
+        .bounds(centerX - 25, startY + 110, 20, 20)
         .build());
 
-        addDrawableChild(ButtonWidget.builder(
-            Text.literal(LanguageManager.get("config.compact_tabs") + ": " + (config.compactTabs ? "ON" : "OFF")),
+        addRenderableWidget(Button.builder(
+            Component.literal(LanguageManager.get("config.compact_tabs") + ": " + (config.compactTabs ? "ON" : "OFF")),
             button -> {
                 config.compactTabs = !config.compactTabs;
-                button.setMessage(Text.literal(LanguageManager.get("config.compact_tabs") + ": " + (config.compactTabs ? "ON" : "OFF")));
+                button.setMessage(Component.literal(LanguageManager.get("config.compact_tabs") + ": " + (config.compactTabs ? "ON" : "OFF")));
                 config.save();
             }
-        ).dimensions(centerX + 5, startY + 110, 150, 20).build());
+        ).bounds(centerX + 5, startY + 110, 150, 20).build());
 
         int boxX = centerX - 155;
         int boxY = 154;
         int boxWidth = 310;
-        searchField = new TextFieldWidget(textRenderer, boxX + 4, boxY + 4, boxWidth - 8, 16, Text.literal(""));
-        searchField.setPlaceholder(Text.literal(LanguageManager.get("config.search_player")));
-        searchField.setDrawsBackground(true);
+        searchField = new EditBox(font, boxX + 4, boxY + 4, boxWidth - 8, 16, Component.empty());
+        searchField.setHint(Component.literal(LanguageManager.get("config.search_player")));
+        searchField.setBordered(true);
         searchField.setMaxLength(32);
-        searchField.setText(searchQuery);
-        searchField.setChangedListener(q -> {
+        searchField.setValue(searchQuery);
+        searchField.setResponder(q -> {
             this.searchQuery = q;
             this.playerListScroll = 0;
         });
-        addDrawableChild(searchField);
+        addRenderableWidget(searchField);
 
-        addDrawableChild(ButtonWidget.builder(Text.literal(LanguageManager.get("config.done")), b -> {
+        addRenderableWidget(Button.builder(Component.literal(LanguageManager.get("config.done")), b -> {
             config.save();
-            if (client != null) {
-                client.setScreen(parent);
+            if (minecraft != null) {
+                minecraft.setScreen(parent);
             }
-        }).dimensions(centerX - 75, height - 24, 150, 18).build());
+        }).bounds(centerX - 75, height - 24, 150, 18).build());
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         if (searchField != null) {
             searchField.setVisible(!isDraggingPreview);
             if (isDraggingPreview) {
@@ -197,10 +201,10 @@ public class RetroChatConfigScreen extends Screen {
             }
         }
 
-        renderBackground(context, mouseX, mouseY, delta);
+        extractBackground(context, mouseX, mouseY, delta);
 
         if (isDraggingPreview) {
-            super.render(context, mouseX, mouseY, delta);
+            super.extractRenderState(context, mouseX, mouseY, delta);
 
             context.fill(0, 0, width, height, 0xCC000000);
 
@@ -208,13 +212,14 @@ public class RetroChatConfigScreen extends Screen {
             int previewX = (width - previewWidth) / 2;
 
             String dimText = "✦ " + LanguageManager.get("config.live_preview") + ": " + previewWidth + " x " + previewHeight + " px ✦";
-            context.drawCenteredTextWithShadow(textRenderer, dimText, width / 2, previewY - 14, GuiUtils.ORANGE_ACCENT_HOVER);
+            context.text(font, dimText, (width - font.width(dimText)) / 2, previewY - 14, GuiUtils.ORANGE_ACCENT_HOVER, true);
 
             renderLivePreviewWindow(context, previewX, previewY, previewWidth, previewHeight);
         } else {
-            super.render(context, mouseX, mouseY, delta);
+            super.extractRenderState(context, mouseX, mouseY, delta);
 
-            context.drawCenteredTextWithShadow(textRenderer, LanguageManager.get("config.title"), width / 2, 10, 0xFFFFFFFF);
+            String titleText = LanguageManager.get("config.title");
+            context.text(font, titleText, (width - font.width(titleText)) / 2, 10, 0xFFFFFFFF, true);
 
             int centerX = width / 2;
             int boxX = centerX - 155;
@@ -230,8 +235,8 @@ public class RetroChatConfigScreen extends Screen {
             renderPlayerManagementList(context, boxX, listY, boxWidth, listHeight, mouseX, mouseY);
 
             String hintText = "💡 " + LanguageManager.get("config.keybind_hint");
-            String trimmedHint = textRenderer.trimToWidth(hintText, Math.max(10, width - 20));
-            context.drawCenteredTextWithShadow(textRenderer, trimmedHint, width / 2, height - 36, GuiUtils.ORANGE_ACCENT_HOVER);
+            String trimmedHint = font.plainSubstrByWidth(hintText, Math.max(10, width - 20));
+            context.text(font, trimmedHint, (width - font.width(trimmedHint)) / 2, height - 36, GuiUtils.ORANGE_ACCENT_HOVER, true);
         }
     }
 
@@ -290,13 +295,13 @@ public class RetroChatConfigScreen extends Screen {
         Set<String> knownPlayers = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         Map<String, UUID> onlineUuids = new HashMap<>();
 
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.getNetworkHandler() != null) {
-            for (PlayerListEntry entry : mc.getNetworkHandler().getPlayerList()) {
-                String name = entry.getProfile().getName();
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.getConnection() != null) {
+            for (PlayerInfo entry : mc.getConnection().getOnlinePlayers()) {
+                String name = entry.getProfile().name();
                 if (name != null && (mc.player == null || !name.equalsIgnoreCase(mc.player.getName().getString()))) {
                     knownPlayers.add(name);
-                    onlineUuids.put(name.toLowerCase(), entry.getProfile().getId());
+                    onlineUuids.put(name.toLowerCase(), entry.getProfile().id());
                 }
             }
         }
@@ -347,7 +352,7 @@ public class RetroChatConfigScreen extends Screen {
         return entries;
     }
 
-    private void renderPlayerManagementList(DrawContext context, int boxX, int listY, int boxWidth, int listHeight, int mouseX, int mouseY) {
+    private void renderPlayerManagementList(GuiGraphicsExtractor context, int boxX, int listY, int boxWidth, int listHeight, int mouseX, int mouseY) {
         List<Object> entries = getDisplayEntries();
         int totalHeight = 0;
         for (Object obj : entries) {
@@ -370,12 +375,12 @@ public class RetroChatConfigScreen extends Screen {
                 if (currY + 14 >= listY && currY <= listY + listHeight) {
                     int headerColor = sh.isBlocked ? GuiUtils.ORANGE_ACCENT : 0xFF4ADE80;
                     context.fill(boxX + 4, currY + 11, boxX + contentWidth - 4, currY + 12, 0x30FFFFFF);
-                    context.drawText(textRenderer, sh.title, boxX + 6, currY + 2, headerColor, true);
+                    context.text(font, sh.title, boxX + 6, currY + 2, headerColor, true);
                 }
                 currY += 16;
             } else if (obj instanceof EmptyNotice en) {
                 if (currY + 12 >= listY && currY <= listY + listHeight) {
-                    context.drawText(textRenderer, en.text, boxX + 16, currY + 2, 0xFF7D9C86, false);
+                    context.text(font, en.text, boxX + 16, currY + 2, 0xFF7D9C86, false);
                 }
                 currY += 14;
             } else if (obj instanceof PlayerListItem item) {
@@ -396,7 +401,7 @@ public class RetroChatConfigScreen extends Screen {
             int thumbY = trackY + (int) ((float) playerListScroll / maxPlayerListScroll * (trackHeight - thumbHeight));
 
             context.fill(trackX, trackY, trackX + scrollbarWidth, trackY + trackHeight, 0x60000000);
-            context.drawBorder(trackX, trackY, scrollbarWidth, trackHeight, 0x25FFFFFF);
+            context.outline(trackX, trackY, scrollbarWidth, trackHeight, 0x25FFFFFF);
 
             boolean hoveredThumb = mouseX >= trackX - 1 && mouseX <= trackX + scrollbarWidth + 1 && mouseY >= thumbY && mouseY <= thumbY + thumbHeight;
             int thumbBg = (isDraggingListScrollbar || hoveredThumb) ? GuiUtils.ORANGE_ACCENT : 0xFF2A5738;
@@ -407,7 +412,7 @@ public class RetroChatConfigScreen extends Screen {
         }
     }
 
-    private void renderPlayerRow(DrawContext context, PlayerListItem item, int boxX, int y, int width, int mouseX, int mouseY) {
+    private void renderPlayerRow(GuiGraphicsExtractor context, PlayerListItem item, int boxX, int y, int width, int mouseX, int mouseY) {
         boolean rowHovered = mouseX >= boxX + 4 && mouseX <= boxX + width - 6 && mouseY >= y && mouseY <= y + 17;
         if (rowHovered) {
             context.fill(boxX + 4, y, boxX + width - 6, y + 17, 0x1FFFFFFF);
@@ -418,14 +423,14 @@ public class RetroChatConfigScreen extends Screen {
         int btnY = y + 2;
 
         if (item.isCustomQuery) {
-            context.drawText(textRenderer, "+ \"" + item.name + "\"", boxX + 8, y + 4, 0xFFFCD34D, true);
+            context.text(font, "+ \"" + item.name + "\"", boxX + 8, y + 4, 0xFFFCD34D, true);
             boolean btnHovered = mouseX >= btnX && mouseX <= btnX + btnWidth && mouseY >= btnY && mouseY <= btnY + 12;
-            GuiUtils.drawMiniButton(context, textRenderer, LanguageManager.get("config.block"), btnX, btnY, btnWidth, 12, btnHovered);
+            GuiUtils.drawMiniButton(context, font, LanguageManager.get("config.block"), btnX, btnY, btnWidth, 12, btnHovered);
             return;
         }
 
-        SkinTextures skin = GuiUtils.getPlayerSkin(item.uuid, item.name);
-        GuiUtils.drawPlayerHead(context, skin, boxX + 8, y + 3, 11);
+        PlayerSkin skin = GuiUtils.getPlayerSkin(item.uuid, item.name);
+        PlayerFaceExtractor.extractRenderState(context, skin, boxX + 8, y + 3, 11);
 
         if (!item.isBlocked) {
             int dotColor = item.isOnline ? 0xFF22C55E : 0xFF64748B;
@@ -434,24 +439,24 @@ public class RetroChatConfigScreen extends Screen {
 
         int nameX = item.isBlocked ? boxX + 23 : boxX + 28;
         int maxNameWidth = btnX - nameX - 4;
-        String trimmedName = textRenderer.trimToWidth(item.name, Math.max(10, maxNameWidth));
+        String trimmedName = font.plainSubstrByWidth(item.name, Math.max(10, maxNameWidth));
         int nameColor = item.isBlocked ? 0xFFFF7777 : (item.isOnline ? 0xFFFFFFFF : 0xFFB8D5C0);
-        context.drawText(textRenderer, trimmedName, nameX, y + 4, nameColor, true);
+        context.text(font, trimmedName, nameX, y + 4, nameColor, true);
 
         boolean btnHovered = mouseX >= btnX && mouseX <= btnX + btnWidth && mouseY >= btnY && mouseY <= btnY + 12;
         String btnText = item.isBlocked ? LanguageManager.get("config.unblock") : LanguageManager.get("config.block");
-        GuiUtils.drawMiniButton(context, textRenderer, btnText, btnX, btnY, btnWidth, 12, btnHovered);
+        GuiUtils.drawMiniButton(context, font, btnText, btnX, btnY, btnWidth, 12, btnHovered);
     }
 
-    private void renderLivePreviewWindow(DrawContext context, int x, int y, int w, int h) {
+    private void renderLivePreviewWindow(GuiGraphicsExtractor context, int x, int y, int w, int h) {
         context.fill(x - 2, y - 2, x + w + 2, y + h + 2, 0xFF000000);
-        context.drawBorder(x - 1, y - 1, w + 2, h + 2, GuiUtils.ORANGE_ACCENT);
+        context.outline(x - 1, y - 1, w + 2, h + 2, GuiUtils.ORANGE_ACCENT);
 
         GuiUtils.drawBeveledBox(context, x, y, w, h, 0xFF142018, 0xFF356142, 0xFF08120B);
 
         GuiUtils.drawWindowHeader(context, x + 1, y + 1, w - 2, 18, true);
-        String headerTitle = textRenderer.trimToWidth(LanguageManager.get("config.preview_player"), Math.max(10, w - 65));
-        context.drawText(textRenderer, headerTitle, x + 16, y + 5, 0xFFFFFFFF, true);
+        String headerTitle = font.plainSubstrByWidth(LanguageManager.get("config.preview_player"), Math.max(10, w - 65));
+        context.text(font, headerTitle, x + 16, y + 5, 0xFFFFFFFF, true);
         GuiUtils.drawPinButton(context, x + w - 43, y + 3, 12, 12, true, false);
         GuiUtils.drawMinimizeButton(context, x + w - 29, y + 3, 12, 12, false);
         GuiUtils.drawCloseButton(context, x + w - 15, y + 3, 12, 12, false);
@@ -467,53 +472,53 @@ public class RetroChatConfigScreen extends Screen {
         int currentLineY = msgY + 5;
         boolean showHeads = config.showPlayerHeads;
 
-        net.minecraft.text.MutableText msg1 = Text.empty();
+        MutableComponent msg1 = Component.empty();
         int timeWidth1 = 0;
         if (config.showTimestamps) {
             String time1 = "[12:34] ";
-            msg1.append(Text.literal(time1).styled(s -> s.withColor(0x7D9C86)));
-            timeWidth1 = textRenderer.getWidth(time1);
+            msg1.append(Component.literal(time1).withColor(0x7D9C86));
+            timeWidth1 = font.width(time1);
         }
         if (showHeads) {
-            msg1.append(Text.literal("   "));
+            msg1.append(Component.literal("   "));
         }
-        msg1.append(Text.literal("Steve: ").styled(s -> s.withColor(0x4ADE80)));
-        msg1.append(Text.literal(LanguageManager.get("config.preview_msg1")).styled(s -> s.withColor(0xFFFFFF)));
+        msg1.append(Component.literal("Steve: ").withColor(0x4ADE80));
+        msg1.append(Component.literal(LanguageManager.get("config.preview_msg1")).withColor(0xFFFFFF));
 
-        SkinTextures steveSkin = GuiUtils.getPlayerSkin(null, "Steve");
-        List<net.minecraft.text.OrderedText> lines1 = textRenderer.wrapLines(msg1, availWidth);
+        PlayerSkin steveSkin = GuiUtils.getPlayerSkin(null, "Steve");
+        List<FormattedCharSequence> lines1 = font.split(msg1, availWidth);
         for (int i = 0; i < lines1.size(); i++) {
             if (currentLineY + 9 <= msgY + msgH - 2) {
                 if (i == 0 && showHeads) {
-                    GuiUtils.drawPlayerHead(context, steveSkin, x + 6 + timeWidth1 + 2, currentLineY, 8);
+                    PlayerFaceExtractor.extractRenderState(context, steveSkin, x + 6 + timeWidth1 + 2, currentLineY, 8);
                 }
-                context.drawText(textRenderer, lines1.get(i), x + 6, currentLineY, 0xFFFFFFFF, true);
+                context.text(font, lines1.get(i), x + 6, currentLineY, 0xFFFFFFFF, true);
                 currentLineY += 10;
             }
         }
 
         currentLineY += 2;
-        net.minecraft.text.MutableText msg2 = Text.empty();
+        MutableComponent msg2 = Component.empty();
         int timeWidth2 = 0;
         if (config.showTimestamps) {
             String time2 = "[12:35] ";
-            msg2.append(Text.literal(time2).styled(s -> s.withColor(0x7D9C86)));
-            timeWidth2 = textRenderer.getWidth(time2);
+            msg2.append(Component.literal(time2).withColor(0x7D9C86));
+            timeWidth2 = font.width(time2);
         }
         if (showHeads) {
-            msg2.append(Text.literal("   "));
+            msg2.append(Component.literal("   "));
         }
-        msg2.append(Text.literal(LanguageManager.get("chat.you") + ": ").styled(s -> s.withColor(0xF97316)));
-        msg2.append(Text.literal(LanguageManager.get("config.preview_msg2")).styled(s -> s.withColor(0xFEF08A)));
+        msg2.append(Component.literal(LanguageManager.get("chat.you") + ": ").withColor(0xF97316));
+        msg2.append(Component.literal(LanguageManager.get("config.preview_msg2")).withColor(0xFEF08A));
 
-        SkinTextures mySkin = (client != null && client.player != null) ? client.player.getSkinTextures() : null;
-        List<net.minecraft.text.OrderedText> lines2 = textRenderer.wrapLines(msg2, availWidth);
+        PlayerSkin mySkin = (minecraft != null && minecraft.player != null) ? minecraft.player.getSkin() : null;
+        List<FormattedCharSequence> lines2 = font.split(msg2, availWidth);
         for (int i = 0; i < lines2.size(); i++) {
             if (currentLineY + 9 <= msgY + msgH - 2) {
-                if (i == 0 && showHeads) {
-                    GuiUtils.drawPlayerHead(context, mySkin, x + 6 + timeWidth2 + 2, currentLineY, 8);
+                if (i == 0 && showHeads && mySkin != null) {
+                    PlayerFaceExtractor.extractRenderState(context, mySkin, x + 6 + timeWidth2 + 2, currentLineY, 8);
                 }
-                context.drawText(textRenderer, lines2.get(i), x + 6, currentLineY, 0xFFFFFFFF, true);
+                context.text(font, lines2.get(i), x + 6, currentLineY, 0xFFFFFFFF, true);
                 currentLineY += 10;
             }
         }
@@ -522,16 +527,19 @@ public class RetroChatConfigScreen extends Screen {
 
         int inputY = y + h - 32;
         GuiUtils.drawBeveledBox(context, x + 4, inputY, w - 8, 16, 0xFF0D1610, 0xFF1E3826, 0xFF080D0A);
-        String inputPlaceholder = textRenderer.trimToWidth(LanguageManager.get("chat.type_message"), Math.max(10, w - 24));
-        context.drawText(textRenderer, inputPlaceholder, x + 8, inputY + 4, 0xFF6E8F78, false);
+        String inputPlaceholder = font.plainSubstrByWidth(LanguageManager.get("chat.type_message"), Math.max(10, w - 24));
+        context.text(font, inputPlaceholder, x + 8, inputY + 4, 0xFF6E8F78, false);
 
         String counter = "0 / 256";
         int counterY = y + h - 12;
-        context.drawText(textRenderer, counter, x + w - textRenderer.getWidth(counter) - 6, counterY, GuiUtils.ORANGE_ACCENT, false);
+        context.text(font, counter, x + w - font.width(counter) - 6, counterY, GuiUtils.ORANGE_ACCENT, false);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+
         int centerX = width / 2;
         int boxX = centerX - 155;
         int boxY = 154;
@@ -584,7 +592,7 @@ public class RetroChatConfigScreen extends Screen {
                             ConversationManager.getInstance().setWindowState(item.name, ConversationManager.WindowState.CLOSED);
                             ConversationManager.getInstance().setWindowPinned(item.name, false);
                             if (item.isCustomQuery && searchField != null) {
-                                searchField.setText("");
+                                searchField.setValue("");
                             }
                         }
                         return true;
@@ -594,11 +602,11 @@ public class RetroChatConfigScreen extends Screen {
             }
         }
 
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+    public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
         if (isDraggingListScrollbar && maxPlayerListScroll > 0) {
             int centerX = width / 2;
             int boxX = centerX - 155;
@@ -617,22 +625,22 @@ public class RetroChatConfigScreen extends Screen {
                 else if (obj instanceof PlayerListItem) totalHeight += 18;
             }
             int thumbHeight = Math.max(16, (int) ((float) trackHeight / totalHeight * trackHeight));
-            float ratio = (float) (mouseY - trackY - thumbHeight / 2.0f) / Math.max(1, (trackHeight - thumbHeight));
+            float ratio = (float) (event.y() - trackY - thumbHeight / 2.0f) / Math.max(1, (trackHeight - thumbHeight));
             playerListScroll = Math.max(0, Math.min(maxPlayerListScroll, (int) (ratio * maxPlayerListScroll)));
             return true;
         }
-        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+        return super.mouseDragged(event, deltaX, deltaY);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(MouseButtonEvent event) {
         if (isDraggingPreview) {
             isDraggingPreview = false;
         }
         if (isDraggingListScrollbar) {
             isDraggingListScrollbar = false;
         }
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     @Override
@@ -658,10 +666,10 @@ public class RetroChatConfigScreen extends Screen {
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
-    private class PreviewSlider extends SliderWidget {
+    private class PreviewSlider extends AbstractSliderButton {
         private final boolean isWidthSlider;
 
-        public PreviewSlider(int x, int y, int width, int height, Text text, double value, boolean isWidthSlider) {
+        public PreviewSlider(int x, int y, int width, int height, Component text, double value, boolean isWidthSlider) {
             super(x, y, width, height, text, value);
             this.isWidthSlider = isWidthSlider;
         }
@@ -670,10 +678,10 @@ public class RetroChatConfigScreen extends Screen {
         protected void updateMessage() {
             if (isWidthSlider) {
                 int w = 160 + (int)(this.value * 160);
-                setMessage(Text.literal(LanguageManager.get("config.width") + ": " + w + "px"));
+                setMessage(Component.literal(LanguageManager.get("config.width") + ": " + w + "px"));
             } else {
                 int h = 120 + (int)(this.value * 140);
-                setMessage(Text.literal(LanguageManager.get("config.height") + ": " + h + "px"));
+                setMessage(Component.literal(LanguageManager.get("config.height") + ": " + h + "px"));
             }
         }
 
@@ -690,16 +698,16 @@ public class RetroChatConfigScreen extends Screen {
         }
 
         @Override
-        public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            if (this.visible && this.isMouseOver(mouseX, mouseY)) {
+        public void onClick(MouseButtonEvent event, boolean doubleClick) {
+            if (this.visible && this.isMouseOver(event.x(), event.y())) {
                 isDraggingPreview = true;
             }
-            return super.mouseClicked(mouseX, mouseY, button);
+            super.onClick(event, doubleClick);
         }
 
         @Override
-        public void onRelease(double mouseX, double mouseY) {
-            super.onRelease(mouseX, mouseY);
+        public void onRelease(MouseButtonEvent event) {
+            super.onRelease(event);
             isDraggingPreview = false;
         }
     }
