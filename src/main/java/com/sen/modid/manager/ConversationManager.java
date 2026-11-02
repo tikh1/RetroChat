@@ -69,8 +69,28 @@ public class ConversationManager {
         STORAGE_DIR.mkdirs();
     }
 
-        public String getCurrentServerKey() {
+    public String getCurrentServerKey() {
         return currentServerKey;
+    }
+
+    public void updateServerScope() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        String newKey = "default";
+        if (client.isInSingleplayer() && client.getServer() != null) {
+            newKey = "sp_" + client.getServer().getSaveProperties().getLevelName();
+        } else {
+            ServerInfo server = client.getCurrentServerEntry();
+            if (server != null && server.address != null) {
+                newKey = "mp_" + server.address.replace(':', '_').replace('/', '_');
+            }
+        }
+
+        if (!newKey.equals(currentServerKey)) {
+            saveCurrentScope();
+            currentServerKey = newKey;
+            loadCurrentScope();
+            restoreServerUiState();
+        }
     }
 
     private void restoreServerUiState() {
@@ -96,26 +116,6 @@ public class ConversationManager {
                     }
                 }
             } catch (Exception ignored) {}
-        }
-    }
-
-    public void updateServerScope() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        String newKey = "default";
-        if (client.isInSingleplayer() && client.getServer() != null) {
-            newKey = "sp_" + client.getServer().getSaveProperties().getLevelName();
-        } else {
-            ServerInfo server = client.getCurrentServerEntry();
-            if (server != null && server.address != null) {
-                newKey = "mp_" + server.address.replace(':', '_').replace('/', '_');
-            }
-        }
-
-        if (!newKey.equals(currentServerKey)) {
-            saveCurrentScope();
-            currentServerKey = newKey;
-            loadCurrentScope();
-            restoreServerUiState();
         }
     }
 
@@ -146,9 +146,6 @@ public class ConversationManager {
     }
 
     public synchronized void addLocalOutgoingMessage(String targetName, UUID targetUuid, DirectMessage message) {
-        if (targetName != null && RetroChatConfig.getInstance().isPlayerBlocked(targetName)) {
-            return;
-        }
         if (targetName != null && message != null && message.getContent() != null) {
             pendingOutgoings.add(new PendingOutgoing(targetName, message.getContent(), System.currentTimeMillis()));
         }
@@ -175,10 +172,7 @@ public class ConversationManager {
 
     public synchronized void addMessage(String partnerName, UUID partnerUuid, DirectMessage message) {
         updateServerScope();
-        boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(partnerName);
-        if (isBlocked && message.isIncoming()) {
-            return; // drop incoming message if sender is BLOCKED
-        }
+        boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(partnerName) || message.wasBlocked();
 
         Conversation conv = getOrCreateConversation(partnerName, partnerUuid);
 
@@ -228,7 +222,11 @@ public class ConversationManager {
     public void setWindowState(String playerName, WindowState state) {
         if (playerName == null) return;
         String key = playerName.toLowerCase();
-        windowStates.put(key, state);
+        if (state == WindowState.CLOSED) {
+            windowStates.remove(key);
+        } else {
+            windowStates.put(key, state);
+        }
         RetroChatConfig.getInstance().setServerWindowState(currentServerKey, playerName, state.name());
         if (state == WindowState.OPEN) {
             markAsRead(playerName);
@@ -359,5 +357,12 @@ public class ConversationManager {
             e.printStackTrace();
         }
     }
-}
 
+    public int getTotalUnreadCount() {
+        int total = 0;
+        for (Conversation c : conversations.values()) {
+            total += c.getUnreadCount();
+        }
+        return total;
+    }
+}

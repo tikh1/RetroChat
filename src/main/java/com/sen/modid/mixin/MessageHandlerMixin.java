@@ -41,18 +41,15 @@ public class MessageHandlerMixin {
     private void onChatMessage(SignedMessage message, GameProfile senderProfile, MessageType.Parameters params, CallbackInfo ci) {
         if (params.type().matchesKey(MessageType.MSG_COMMAND_INCOMING)) {
             String senderName = senderProfile.getName();
-            if (RetroChatConfig.getInstance().isPlayerBlocked(senderName)) {
-                ci.cancel();
-                return;
-            }
+            boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(senderName);
             UUID senderUuid = senderProfile.getId();
             String content = message.getContent().getString();
             long timestamp = Instant.now().toEpochMilli();
 
-            DirectMessage dm = new DirectMessage(senderUuid, senderName, null, "me", content, timestamp, true, false);
+            DirectMessage dm = new DirectMessage(senderUuid, senderName, null, "me", content, timestamp, true, isBlocked, isBlocked);
             ConversationManager.getInstance().addMessage(senderName, senderUuid, dm);
 
-            if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
+            if (isBlocked || RetroChatConfig.getInstance().hideDmsInVanillaChat) {
                 ci.cancel();
             }
         } else if (params.type().matchesKey(MessageType.MSG_COMMAND_OUTGOING)) {
@@ -79,17 +76,14 @@ public class MessageHandlerMixin {
     private void onProfilelessMessage(Text message, MessageType.Parameters params, CallbackInfo ci) {
         if (params.type().matchesKey(MessageType.MSG_COMMAND_INCOMING)) {
             String senderName = params.name().getString();
-            if (RetroChatConfig.getInstance().isPlayerBlocked(senderName)) {
-                ci.cancel();
-                return;
-            }
+            boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(senderName);
             String content = message.getString();
             long timestamp = Instant.now().toEpochMilli();
 
-            DirectMessage dm = new DirectMessage(null, senderName, null, "me", content, timestamp, true, false);
+            DirectMessage dm = new DirectMessage(null, senderName, null, "me", content, timestamp, true, isBlocked, isBlocked);
             ConversationManager.getInstance().addMessage(senderName, null, dm);
 
-            if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
+            if (isBlocked || RetroChatConfig.getInstance().hideDmsInVanillaChat) {
                 ci.cancel();
             }
         } else if (params.type().matchesKey(MessageType.MSG_COMMAND_OUTGOING)) {
@@ -121,14 +115,11 @@ public class MessageHandlerMixin {
             Matcher m = p.matcher(raw);
             if (m.matches()) {
                 String sender = m.group(1);
-                if (RetroChatConfig.getInstance().isPlayerBlocked(sender)) {
-                    ci.cancel();
-                    return;
-                }
+                boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(sender);
                 String content = m.group(2);
-                DirectMessage dm = new DirectMessage(null, sender, null, "me", content, Instant.now().toEpochMilli(), true, false);
+                DirectMessage dm = new DirectMessage(null, sender, null, "me", content, Instant.now().toEpochMilli(), true, isBlocked, isBlocked);
                 ConversationManager.getInstance().addMessage(sender, null, dm);
-                if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
+                if (isBlocked || RetroChatConfig.getInstance().hideDmsInVanillaChat) {
                     ci.cancel();
                 }
                 return;
