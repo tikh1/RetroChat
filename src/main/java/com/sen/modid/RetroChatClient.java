@@ -9,13 +9,14 @@ import com.sen.modid.ui.RetroChatOverlayScreen;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
-import net.neoforged.neoforge.common.NeoForge;
+import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,23 +32,24 @@ public class RetroChatClient {
         return toggleChatKey;
     }
 
-    public RetroChatClient(IEventBus modEventBus, ModContainer modContainer) {
+    public RetroChatClient() {
         LOGGER.info("[RetroChat] Initializing client mod...");
 
         RetroChatConfig.getInstance();
         com.sen.modid.lang.LanguageManager.getInstance();
         ConversationManager.getInstance();
 
-        modContainer.registerExtensionPoint(
-            IConfigScreenFactory.class,
-            (container, parentScreen) -> new RetroChatConfigScreen(parentScreen)
+        ModLoadingContext.get().registerExtensionPoint(
+            ConfigScreenHandler.ConfigScreenFactory.class,
+            () -> new ConfigScreenHandler.ConfigScreenFactory((client, parentScreen) -> new RetroChatConfigScreen(parentScreen))
         );
 
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.addListener(this::registerKeyMappings);
-        NeoForge.EVENT_BUS.addListener(this::onClientTick);
-        NeoForge.EVENT_BUS.register(new RetroChatClientEventHandler());
+        MinecraftForge.EVENT_BUS.addListener(this::onClientTick);
+        MinecraftForge.EVENT_BUS.register(new RetroChatClientEventHandler());
 
-        LOGGER.info("[RetroChat] Initialized successfully on NeoForge 1.21.1!");
+        LOGGER.info("[RetroChat] Initialized successfully on Forge 1.21.1!");
     }
 
     private void registerKeyMappings(RegisterKeyMappingsEvent event) {
@@ -60,7 +62,8 @@ public class RetroChatClient {
         event.register(toggleChatKey);
     }
 
-    private void onClientTick(ClientTickEvent.Post event) {
+    private void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         Minecraft client = Minecraft.getInstance();
         Screen currentScreen = client.screen;
         if (lastScreen != null && currentScreen == null) {

@@ -10,8 +10,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.client.event.*;
+import net.minecraftforge.client.event.*;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -148,11 +148,11 @@ public class RetroChatClientEventHandler {
     }
 
     @SubscribeEvent
-    public void onRenderGui(RenderGuiEvent.Post event) {
+    public void onCustomizeChat(CustomizeGuiOverlayEvent.Chat event) {
         if (!RetroChatConfig.getInstance().modEnabled) return;
         Minecraft client = Minecraft.getInstance();
         if (client.level != null && client.screen == null) {
-            RetroChatOverlay.getInstance().render(event.getGuiGraphics(), -1000, -1000, event.getPartialTick().getGameTimeDeltaPartialTick(true));
+            RetroChatOverlay.getInstance().render(event.getGuiGraphics(), -1000, -1000, event.getPartialTick());
         }
     }
 
@@ -210,7 +210,7 @@ public class RetroChatClientEventHandler {
         if (client.level == null) return;
         Screen screen = event.getScreen();
         if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
-        if (RetroChatOverlay.getInstance().mouseScrolled(event.getMouseX(), event.getMouseY(), event.getScrollDeltaX(), event.getScrollDeltaY())) {
+        if (RetroChatOverlay.getInstance().mouseScrolled(event.getMouseX(), event.getMouseY(), event.getDeltaX(), event.getDeltaY())) {
             event.setCanceled(true);
         }
     }
