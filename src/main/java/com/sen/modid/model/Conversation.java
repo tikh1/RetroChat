@@ -53,6 +53,14 @@ public class Conversation {
     }
 
     public synchronized boolean addMessage(DirectMessage message) {
+        if (!messages.isEmpty()) {
+            DirectMessage last = messages.get(messages.size() - 1);
+            if (last.isIncoming() == message.isIncoming()
+                && Objects.equals(last.getContent(), message.getContent())
+                && Math.abs(last.getTimestamp() - message.getTimestamp()) < 800) {
+                return false;
+            }
+        }
         messages.add(message);
         this.lastMessageTimestamp = message.getTimestamp();
         if (message.isIncoming() && !message.isRead()) {

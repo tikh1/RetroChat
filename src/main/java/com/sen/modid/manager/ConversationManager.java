@@ -73,7 +73,9 @@ public class ConversationManager {
         return currentServerKey;
     }
 
-    private String getLocalPlayerName() {
+    private File cachedSingleplayerStorageDir = null;
+
+    public String getLocalPlayerName() {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null && client.player.getGameProfile() != null) {
             String name = client.player.getGameProfile().getName();
@@ -95,10 +97,12 @@ public class ConversationManager {
         if (client.isInSingleplayer() && client.getServer() != null) {
             try {
                 java.nio.file.Path rootPath = client.getServer().getSavePath(net.minecraft.util.WorldSavePath.ROOT);
-                return rootPath.toAbsolutePath().normalize().resolve("retrochat").toFile();
+                File dir = rootPath.toAbsolutePath().normalize().resolve("retrochat").toFile();
+                this.cachedSingleplayerStorageDir = dir;
+                return dir;
             } catch (Exception ignored) {}
         }
-        return null;
+        return cachedSingleplayerStorageDir;
     }
 
     private File getSingleplayerUiStateFile() {
@@ -420,6 +424,7 @@ public class ConversationManager {
         saveCurrentScope();
         saveCurrentUiState();
         currentServerKey = "";
+        cachedSingleplayerStorageDir = null;
         conversations.clear();
         windowStates.clear();
         RetroChatOverlay overlay = RetroChatOverlay.getInstance();
