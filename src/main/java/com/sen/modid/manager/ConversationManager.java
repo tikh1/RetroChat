@@ -103,7 +103,12 @@ public class ConversationManager {
         Minecraft client = Minecraft.getInstance();
         String newKey = "default";
         if (client.hasSingleplayerServer() && client.getSingleplayerServer() != null) {
-            newKey = "sp_" + client.getSingleplayerServer().getWorldData().getLevelName();
+            try {
+                String folderName = client.getSingleplayerServer().getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).getFileName().toString();
+                newKey = "sp_" + folderName.replace(':', '_').replace('/', '_');
+            } catch (Exception e) {
+                newKey = "sp_" + client.getSingleplayerServer().getWorldData().getLevelName();
+            }
         } else {
             ServerData server = client.getCurrentServer();
             if (server != null && server.ip != null && !server.ip.trim().isEmpty()) {
@@ -112,7 +117,7 @@ public class ConversationManager {
                 java.net.SocketAddress socketAddr = client.getConnection().getConnection().getRemoteAddress();
                 if (socketAddr instanceof java.net.InetSocketAddress inet) {
                     newKey = "mp_" + inet.getHostString() + "_" + inet.getPort();
-                } else if (socketAddr != null) {
+                } else if (socketAddr != null && !socketAddr.toString().startsWith("local:")) {
                     newKey = "mp_" + socketAddr.toString().replace(':', '_').replace('/', '_');
                 }
             }
