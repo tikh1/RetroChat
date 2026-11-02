@@ -18,6 +18,7 @@ public class RetroChatConfig {
 
     private static RetroChatConfig instance;
 
+    public boolean modEnabled = true;
     public boolean hideDmsInVanillaChat = true;
     public boolean soundEnabled = true;
     public float soundVolume = 0.5f;

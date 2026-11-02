@@ -234,6 +234,7 @@ public class LanguageManager {
                     + "  \"language_code\": \"en_us\",\n"
                     + "  \"language_name\": \"English\",\n"
                     + "  \"config.title\": \"RetroChat Configuration\",\n"
+                    + "  \"config.mod_enabled\": \"RetroChat Mod\",\n"
                     + "  \"config.hide_dms\": \"Hide DMs in Vanilla Chat\",\n"
                     + "  \"config.sound\": \"Sound Notification\",\n"
                     + "  \"config.volume\": \"Volume\",\n"
@@ -332,6 +333,7 @@ public class LanguageManager {
         map.put("language_code", "en_us");
         map.put("language_name", "English");
         map.put("config.title", "RetroChat Configuration");
+        map.put("config.mod_enabled", "RetroChat Mod");
         map.put("config.hide_dms", "Hide DMs in Vanilla Chat");
         map.put("config.sound", "Sound Notification");
         map.put("config.volume", "Volume");
@@ -377,6 +379,7 @@ public class LanguageManager {
         map.put("language_code", "tr_tr");
         map.put("language_name", "Türkçe");
         map.put("config.title", "RetroChat Ayarları");
+        map.put("config.mod_enabled", "RetroChat Modu");
         map.put("config.hide_dms", "Normal Chatte DM'leri Gizle");
         map.put("config.sound", "Sesli Bildirim");
         map.put("config.volume", "Ses Seviyesi");
@@ -422,6 +425,7 @@ public class LanguageManager {
         map.put("language_code", "de_de");
         map.put("language_name", "Deutsch");
         map.put("config.title", "RetroChat Einstellungen");
+        map.put("config.mod_enabled", "RetroChat-Mod");
         map.put("config.hide_dms", "DMs im Vanilla-Chat verbergen");
         map.put("config.sound", "Benachrichtigungston");
         map.put("config.volume", "Lautstärke");
@@ -467,6 +471,7 @@ public class LanguageManager {
         map.put("language_code", "ru_ru");
         map.put("language_name", "Русский");
         map.put("config.title", "Настройки RetroChat");
+        map.put("config.mod_enabled", "Мод RetroChat");
         map.put("config.hide_dms", "Скрыть ЛС в обычном чате");
         map.put("config.sound", "Звуковое уведомление");
         map.put("config.volume", "Громкость");
@@ -511,6 +516,7 @@ public class LanguageManager {
         map.put("language_code", "es_es");
         map.put("language_name", "Español");
         map.put("config.title", "Configuración de RetroChat");
+        map.put("config.mod_enabled", "Mod RetroChat");
         map.put("config.hide_dms", "Ocultar MDs en chat normal");
         map.put("config.sound", "Notificación de sonido");
         map.put("config.volume", "Volumen");
@@ -555,6 +561,7 @@ public class LanguageManager {
         map.put("language_code", "fr_fr");
         map.put("language_name", "Français");
         map.put("config.title", "Configuration de RetroChat");
+        map.put("config.mod_enabled", "Mod RetroChat");
         map.put("config.hide_dms", "Masquer les MPs dans le chat standard");
         map.put("config.sound", "Notification sonore");
         map.put("config.volume", "Volume");
