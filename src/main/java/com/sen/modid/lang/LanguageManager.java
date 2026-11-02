@@ -355,6 +355,7 @@ public class LanguageManager {
         map.put("chat.type_message", "Type a message...");
         map.put("chat.no_messages", "No messages yet.");
         map.put("chat.player_blocked", "Player is blocked.");
+        map.put("chat.sent_while_blocked", "Sent while player was blocked");
         map.put("chat.you", "You");
         map.put("sidebar.title", "RetroChat");
         map.put("sidebar.search", "Search...");
@@ -394,6 +395,7 @@ public class LanguageManager {
         map.put("chat.type_message", "Bir mesaj yazın...");
         map.put("chat.no_messages", "Henüz mesaj yok.");
         map.put("chat.player_blocked", "Bu oyuncu engellendi.");
+        map.put("chat.sent_while_blocked", "Oyuncu engelliyken gönderildi");
         map.put("chat.you", "Sen");
         map.put("sidebar.title", "RetroChat");
         map.put("sidebar.search", "Ara...");
@@ -433,6 +435,7 @@ public class LanguageManager {
         map.put("chat.type_message", "Nachricht schreiben...");
         map.put("chat.no_messages", "Noch keine Nachrichten.");
         map.put("chat.player_blocked", "Spieler ist blockiert.");
+        map.put("chat.sent_while_blocked", "Gesendet, während der Spieler blockiert war");
         map.put("chat.you", "Du");
         map.put("sidebar.title", "RetroChat");
         map.put("sidebar.search", "Suchen...");
@@ -472,6 +475,7 @@ public class LanguageManager {
         map.put("chat.type_message", "Напишите сообщение...");
         map.put("chat.no_messages", "Пока нет сообщений.");
         map.put("chat.player_blocked", "Игрок заблокирован.");
+        map.put("chat.sent_while_blocked", "Отправлено, когда игрок был заблокирован");
         map.put("chat.you", "Вы");
         map.put("sidebar.title", "RetroChat");
         map.put("sidebar.search", "Поиск...");
@@ -511,6 +515,7 @@ public class LanguageManager {
         map.put("chat.type_message", "Escribe un mensaje...");
         map.put("chat.no_messages", "No hay mensajes aún.");
         map.put("chat.player_blocked", "El jugador está bloqueado.");
+        map.put("chat.sent_while_blocked", "Enviado mientras el jugador estaba bloqueado");
         map.put("chat.you", "Tú");
         map.put("sidebar.title", "RetroChat");
         map.put("sidebar.search", "Buscar...");
@@ -550,6 +555,7 @@ public class LanguageManager {
         map.put("chat.type_message", "Écrivez un message...");
         map.put("chat.no_messages", "Aucun message pour le moment.");
         map.put("chat.player_blocked", "Le joueur est bloqué.");
+        map.put("chat.sent_while_blocked", "Envoyé pendant que le joueur était bloqué");
         map.put("chat.you", "Vous");
         map.put("sidebar.title", "RetroChat");
         map.put("sidebar.search", "Rechercher...");
