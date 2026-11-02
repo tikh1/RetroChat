@@ -90,8 +90,7 @@ public class PlayerSidebarWidget {
             searchField.setFocused(false);
         }
         if (saveConfig) {
-            String scope = ConversationManager.getInstance().getCurrentServerKey();
-            RetroChatConfig.getInstance().setServerSidebarCollapsed(scope, collapsed);
+            ConversationManager.getInstance().setSidebarCollapsed(collapsed);
         }
     }
 

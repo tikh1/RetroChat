@@ -73,9 +73,85 @@ public class ConversationManager {
         return currentServerKey;
     }
 
+    private File getSingleplayerStorageDir() {
+        Minecraft client = Minecraft.getInstance();
+        if (client.hasSingleplayerServer() && client.getSingleplayerServer() != null) {
+            try {
+                java.nio.file.Path rootPath = client.getSingleplayerServer().getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT);
+                return rootPath.toAbsolutePath().normalize().resolve("retrochat").toFile();
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    private File getSingleplayerUiStateFile() {
+        File spDir = getSingleplayerStorageDir();
+        if (spDir != null) {
+            return new File(spDir, "ui_state.json");
+        }
+        return null;
+    }
+
+    public synchronized void setSidebarCollapsed(boolean collapsed) {
+        if (currentServerKey.startsWith("sp_")) {
+            saveCurrentUiState();
+        } else {
+            RetroChatConfig.getInstance().setServerSidebarCollapsed(currentServerKey, collapsed);
+        }
+    }
+
+    public synchronized void saveCurrentUiState() {
+        if (currentServerKey == null || currentServerKey.trim().isEmpty() || currentServerKey.equals("default")) {
+            return;
+        }
+        if (currentServerKey.startsWith("sp_")) {
+            File uiFile = getSingleplayerUiStateFile();
+            if (uiFile != null) {
+                try {
+                    uiFile.getParentFile().mkdirs();
+                    RetroChatConfig.ServerUiState state = new RetroChatConfig.ServerUiState();
+                    RetroChatOverlay overlay = RetroChatOverlay.getInstance();
+                    if (overlay != null && overlay.getSidebarWidget() != null) {
+                        state.sidebarCollapsed = overlay.getSidebarWidget().isCollapsed();
+                    }
+                    for (Map.Entry<String, WindowState> entry : windowStates.entrySet()) {
+                        if (entry.getValue() != WindowState.CLOSED) {
+                            state.windowStates.put(entry.getKey(), entry.getValue().name());
+                        }
+                    }
+                    try (FileWriter writer = new FileWriter(uiFile, java.nio.charset.StandardCharsets.UTF_8)) {
+                        GSON.toJson(state, writer);
+                    }
+                } catch (Exception ignored) {}
+            }
+        } else {
+            RetroChatConfig config = RetroChatConfig.getInstance();
+            RetroChatOverlay overlay = RetroChatOverlay.getInstance();
+            if (overlay != null && overlay.getSidebarWidget() != null) {
+                config.setServerSidebarCollapsed(currentServerKey, overlay.getSidebarWidget().isCollapsed());
+            }
+            for (Map.Entry<String, WindowState> entry : windowStates.entrySet()) {
+                config.setServerWindowState(currentServerKey, entry.getKey(), entry.getValue().name());
+            }
+        }
+    }
+
     private void restoreServerUiState() {
-        RetroChatConfig config = RetroChatConfig.getInstance();
-        RetroChatConfig.ServerUiState uiState = config.getServerUiState(currentServerKey);
+        RetroChatConfig.ServerUiState uiState = null;
+        if (currentServerKey.startsWith("sp_")) {
+            File uiFile = getSingleplayerUiStateFile();
+            if (uiFile != null && uiFile.exists()) {
+                try (FileReader reader = new FileReader(uiFile, java.nio.charset.StandardCharsets.UTF_8)) {
+                    uiState = GSON.fromJson(reader, RetroChatConfig.ServerUiState.class);
+                } catch (Exception ignored) {}
+            }
+            if (uiState == null) {
+                uiState = new RetroChatConfig.ServerUiState();
+            }
+        } else {
+            RetroChatConfig config = RetroChatConfig.getInstance();
+            uiState = config.getServerUiState(currentServerKey);
+        }
 
         RetroChatOverlay overlay = RetroChatOverlay.getInstance();
         if (overlay != null && overlay.getSidebarWidget() != null) {
@@ -104,7 +180,12 @@ public class ConversationManager {
         String newKey = "default";
         if (client.hasSingleplayerServer() && client.getSingleplayerServer() != null) {
             try {
-                String folderName = client.getSingleplayerServer().getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).getFileName().toString();
+                java.nio.file.Path rootPath = client.getSingleplayerServer().getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT);
+                java.nio.file.Path normalized = rootPath.toAbsolutePath().normalize();
+                String folderName = normalized.getFileName() != null ? normalized.getFileName().toString() : "";
+                if (folderName.isEmpty() || folderName.equals(".")) {
+                    folderName = client.getSingleplayerServer().getWorldData().getLevelName();
+                }
                 newKey = "sp_" + folderName.replace(':', '_').replace('/', '_');
             } catch (Exception e) {
                 newKey = "sp_" + client.getSingleplayerServer().getWorldData().getLevelName();
@@ -125,6 +206,7 @@ public class ConversationManager {
 
         if (!newKey.equals("default") && !newKey.equals(currentServerKey)) {
             saveCurrentScope();
+            saveCurrentUiState();
             currentServerKey = newKey;
             RetroChatOverlay overlay = RetroChatOverlay.getInstance();
             if (overlay != null) {
@@ -241,8 +323,16 @@ public class ConversationManager {
     public void setWindowState(String playerName, WindowState state) {
         if (playerName == null) return;
         String key = playerName.toLowerCase();
-        windowStates.put(key, state);
-        RetroChatConfig.getInstance().setServerWindowState(currentServerKey, playerName, state.name());
+        if (state == WindowState.CLOSED) {
+            windowStates.remove(key);
+        } else {
+            windowStates.put(key, state);
+        }
+        if (currentServerKey.startsWith("sp_")) {
+            saveCurrentUiState();
+        } else {
+            RetroChatConfig.getInstance().setServerWindowState(currentServerKey, playerName, state.name());
+        }
         if (state == WindowState.OPEN) {
             markAsRead(playerName);
         }
@@ -313,6 +403,7 @@ public class ConversationManager {
 
     public synchronized void resetScope() {
         saveCurrentScope();
+        saveCurrentUiState();
         currentServerKey = "";
         conversations.clear();
         windowStates.clear();
@@ -331,7 +422,13 @@ public class ConversationManager {
     }
 
     private File getFileForScope(String scopeKey) {
-        String safeName = scopeKey.replaceAll("[^a-zA-Z0-9_.-]", "_") + ".json";
+        if (scopeKey != null && scopeKey.startsWith("sp_")) {
+            File spDir = getSingleplayerStorageDir();
+            if (spDir != null) {
+                return new File(spDir, "history.json");
+            }
+        }
+        String safeName = (scopeKey == null ? "default" : scopeKey).replaceAll("[^a-zA-Z0-9_.-]", "_") + ".json";
         return new File(STORAGE_DIR, safeName);
     }
 
@@ -347,9 +444,11 @@ public class ConversationManager {
             });
 
             File file = getFileForScope(currentServerKey);
-            file.getParentFile().mkdirs();
-            try (FileWriter writer = new FileWriter(file, java.nio.charset.StandardCharsets.UTF_8)) {
-                GSON.toJson(conversations, writer);
+            if (file != null) {
+                file.getParentFile().mkdirs();
+                try (FileWriter writer = new FileWriter(file, java.nio.charset.StandardCharsets.UTF_8)) {
+                    GSON.toJson(conversations, writer);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -363,7 +462,7 @@ public class ConversationManager {
         }
         try {
             File file = getFileForScope(currentServerKey);
-            if (file.exists()) {
+            if (file != null && file.exists()) {
                 try (FileReader reader = new FileReader(file, java.nio.charset.StandardCharsets.UTF_8)) {
                     Type type = new TypeToken<Map<String, Conversation>>(){}.getType();
                     Map<String, Conversation> loaded = GSON.fromJson(reader, type);
