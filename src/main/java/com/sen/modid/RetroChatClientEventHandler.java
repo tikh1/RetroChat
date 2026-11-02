@@ -49,6 +49,9 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onChatReceived(ClientChatReceivedEvent event) {
+        if (!RetroChatConfig.getInstance().modEnabled) {
+            return;
+        }
         ChatType.Bound params = event.getBoundChatType();
         if (params != null) {
             if (params.chatType().is(ChatType.MSG_COMMAND_INCOMING)) {
@@ -146,6 +149,7 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onRenderGui(RenderGuiEvent.Post event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return;
         Minecraft client = Minecraft.getInstance();
         if (client.level != null && client.screen == null) {
             RetroChatOverlay.getInstance().render(event.getGuiGraphics(), -1000, -1000, event.getPartialTick().getGameTimeDeltaPartialTick(true));
@@ -154,6 +158,7 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onScreenRender(ScreenEvent.Render.Post event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return;
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
@@ -164,6 +169,7 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onScreenMouseClick(ScreenEvent.MouseButtonPressed.Pre event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return;
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
@@ -175,6 +181,7 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onScreenMouseRelease(ScreenEvent.MouseButtonReleased.Pre event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return;
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
@@ -186,6 +193,7 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onScreenMouseDrag(ScreenEvent.MouseDragged.Pre event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return;
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
@@ -197,6 +205,7 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onScreenMouseScroll(ScreenEvent.MouseScrolled.Pre event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return;
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
@@ -208,6 +217,7 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onScreenKeyPress(ScreenEvent.KeyPressed.Pre event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return;
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
@@ -219,6 +229,7 @@ public class RetroChatClientEventHandler {
 
     @SubscribeEvent
     public void onScreenCharType(ScreenEvent.CharacterTyped.Pre event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return;
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();

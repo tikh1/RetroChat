@@ -47,7 +47,16 @@ public class RetroChatConfigScreen extends Screen {
     @Override
     protected void init() {
         int centerX = width / 2;
-        int startY = 24;
+        int startY = 20;
+
+        addRenderableWidget(Button.builder(
+            Component.literal(LanguageManager.get("config.mod_enabled") + ": " + (config.modEnabled ? "ON" : "OFF")),
+            button -> {
+                config.modEnabled = !config.modEnabled;
+                button.setMessage(Component.literal(LanguageManager.get("config.mod_enabled") + ": " + (config.modEnabled ? "ON" : "OFF")));
+                config.save();
+            }
+        ).bounds(centerX - 155, startY, 310, 20).build());
 
         addRenderableWidget(Button.builder(
             Component.literal(LanguageManager.get("config.hide_dms") + ": " + (config.hideDmsInVanillaChat ? "ON" : "OFF")),
@@ -56,7 +65,7 @@ public class RetroChatConfigScreen extends Screen {
                 button.setMessage(Component.literal(LanguageManager.get("config.hide_dms") + ": " + (config.hideDmsInVanillaChat ? "ON" : "OFF")));
                 config.save();
             }
-        ).bounds(centerX - 155, startY, 150, 20).build());
+        ).bounds(centerX - 155, startY + 22, 150, 20).build());
 
         addRenderableWidget(Button.builder(
             Component.literal(LanguageManager.get("config.sound") + ": " + (config.soundEnabled ? "ON" : "OFF")),
@@ -65,9 +74,9 @@ public class RetroChatConfigScreen extends Screen {
                 button.setMessage(Component.literal(LanguageManager.get("config.sound") + ": " + (config.soundEnabled ? "ON" : "OFF")));
                 config.save();
             }
-        ).bounds(centerX + 5, startY, 150, 20).build());
+        ).bounds(centerX + 5, startY + 22, 150, 20).build());
 
-        addRenderableWidget(new AbstractSliderButton(centerX - 155, startY + 24, 150, 20, Component.literal(LanguageManager.get("config.volume") + ": " + (int)(config.soundVolume * 100) + "%"), config.soundVolume) {
+        addRenderableWidget(new AbstractSliderButton(centerX - 155, startY + 44, 150, 20, Component.literal(LanguageManager.get("config.volume") + ": " + (int)(config.soundVolume * 100) + "%"), config.soundVolume) {
             @Override
             protected void updateMessage() {
                 setMessage(Component.literal(LanguageManager.get("config.volume") + ": " + (int)(this.value * 100) + "%"));
@@ -81,7 +90,7 @@ public class RetroChatConfigScreen extends Screen {
         });
 
         double scaleValue = (config.uiScale - 0.5f) / 1.0f;
-        addRenderableWidget(new AbstractSliderButton(centerX + 5, startY + 24, 150, 20, Component.literal(LanguageManager.get("config.ui_scale") + ": " + (int)(config.uiScale * 100) + "%"), scaleValue) {
+        addRenderableWidget(new AbstractSliderButton(centerX + 5, startY + 44, 150, 20, Component.literal(LanguageManager.get("config.ui_scale") + ": " + (int)(config.uiScale * 100) + "%"), scaleValue) {
             @Override
             protected void updateMessage() {
                 float currentScale = 0.5f + (float) this.value * 1.0f;
@@ -96,24 +105,24 @@ public class RetroChatConfigScreen extends Screen {
         });
 
         double widthValue = (double)(config.windowWidth - 160) / 160.0;
-        addRenderableWidget(new PreviewSlider(centerX - 155, startY + 48, 108, 20, Component.literal(LanguageManager.get("config.width") + ": " + config.windowWidth + "px"), widthValue, true));
+        addRenderableWidget(new PreviewSlider(centerX - 155, startY + 66, 108, 20, Component.literal(LanguageManager.get("config.width") + ": " + config.windowWidth + "px"), widthValue, true));
 
         addRenderableWidget(Button.builder(Component.literal(LanguageManager.get("config.reset")), b -> {
             config.windowWidth = 220;
             previewWidth = 220;
             config.save();
             rebuildWidgets();
-        }).bounds(centerX - 43, startY + 48, 38, 20).build());
+        }).bounds(centerX - 43, startY + 66, 38, 20).build());
 
         double heightValue = (double)(config.windowHeight - 120) / 140.0;
-        addRenderableWidget(new PreviewSlider(centerX + 5, startY + 48, 108, 20, Component.literal(LanguageManager.get("config.height") + ": " + config.windowHeight + "px"), heightValue, false));
+        addRenderableWidget(new PreviewSlider(centerX + 5, startY + 66, 108, 20, Component.literal(LanguageManager.get("config.height") + ": " + config.windowHeight + "px"), heightValue, false));
 
         addRenderableWidget(Button.builder(Component.literal(LanguageManager.get("config.reset")), b -> {
             config.windowHeight = 160;
             previewHeight = 160;
             config.save();
             rebuildWidgets();
-        }).bounds(centerX + 117, startY + 48, 38, 20).build());
+        }).bounds(centerX + 117, startY + 66, 38, 20).build());
 
         addRenderableWidget(Button.builder(
             Component.literal(LanguageManager.get("config.timestamps") + ": " + (config.showTimestamps ? "ON" : "OFF")),
@@ -122,7 +131,7 @@ public class RetroChatConfigScreen extends Screen {
                 button.setMessage(Component.literal(LanguageManager.get("config.timestamps") + ": " + (config.showTimestamps ? "ON" : "OFF")));
                 config.save();
             }
-        ).bounds(centerX - 155, startY + 72, 150, 20).build());
+        ).bounds(centerX - 155, startY + 88, 150, 20).build());
 
         addRenderableWidget(Button.builder(
             Component.literal(LanguageManager.get("config.player_heads") + ": " + (config.showPlayerHeads ? "ON" : "OFF")),
@@ -131,7 +140,7 @@ public class RetroChatConfigScreen extends Screen {
                 button.setMessage(Component.literal(LanguageManager.get("config.player_heads") + ": " + (config.showPlayerHeads ? "ON" : "OFF")));
                 config.save();
             }
-        ).bounds(centerX + 5, startY + 72, 150, 20).build());
+        ).bounds(centerX + 5, startY + 88, 150, 20).build());
 
         addRenderableWidget(Button.builder(
             Component.literal(LanguageManager.get("config.language") + ": " + LanguageManager.getInstance().getCurrentLanguageName()),
@@ -139,7 +148,7 @@ public class RetroChatConfigScreen extends Screen {
                 LanguageManager.getInstance().cycleLanguage();
                 rebuildWidgets();
             }
-        ).bounds(centerX - 155, startY + 96, 126, 20).build());
+        ).bounds(centerX - 155, startY + 110, 126, 20).build());
 
         File langDir = FMLPaths.CONFIGDIR.get().resolve("retrochat").resolve("lang").toFile();
         addRenderableWidget(Button.builder(Component.literal("?"), b -> {
@@ -148,7 +157,7 @@ public class RetroChatConfigScreen extends Screen {
             }
         })
         .tooltip(Tooltip.create(Component.literal(LanguageManager.get("config.language_help"))))
-        .bounds(centerX - 25, startY + 96, 20, 20)
+        .bounds(centerX - 25, startY + 110, 20, 20)
         .build());
 
         addRenderableWidget(Button.builder(
@@ -158,10 +167,10 @@ public class RetroChatConfigScreen extends Screen {
                 button.setMessage(Component.literal(LanguageManager.get("config.compact_tabs") + ": " + (config.compactTabs ? "ON" : "OFF")));
                 config.save();
             }
-        ).bounds(centerX + 5, startY + 96, 150, 20).build());
+        ).bounds(centerX + 5, startY + 110, 150, 20).build());
 
         int boxX = centerX - 155;
-        int boxY = 146;
+        int boxY = 154;
         int boxWidth = 310;
         searchField = new EditBox(font, boxX + 4, boxY + 4, boxWidth - 8, 16, Component.literal(""));
         searchField.setHint(Component.literal(LanguageManager.get("config.search_player")));
@@ -212,7 +221,7 @@ public class RetroChatConfigScreen extends Screen {
 
             int centerX = width / 2;
             int boxX = centerX - 155;
-            int boxY = 146;
+            int boxY = 154;
             int boxWidth = 310;
             int boxHeight = Math.max(70, height - 42 - boxY);
 
@@ -596,7 +605,7 @@ public class RetroChatConfigScreen extends Screen {
         if (isDraggingListScrollbar && maxPlayerListScroll > 0) {
             int centerX = width / 2;
             int boxX = centerX - 155;
-            int boxY = 146;
+            int boxY = 154;
             int boxHeight = Math.max(70, height - 42 - boxY);
             int listY = boxY + 24;
             int listHeight = boxHeight - 27;
