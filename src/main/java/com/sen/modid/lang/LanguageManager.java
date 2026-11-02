@@ -244,6 +244,10 @@ public class LanguageManager {
                     + "  \"config.timestamps\": \"Timestamps\",\n"
                     + "  \"config.player_heads\": \"Player Heads\",\n"
                     + "  \"config.compact_tabs\": \"Compact Tabs\",\n"
+                    + "  \"chat.insert_coords\": \"Insert Coordinates [XYZ]\",\n"
+                    + "  \"chat.search_messages\": \"Search chat...\",\n"
+                    + "  \"chat.search_toggle\": \"Search Messages\",\n"
+                    + "  \"chat.no_search_results\": \"No matching messages found.\",\n"
                     + "  \"config.language\": \"Language\",\n"
                     + "  \"config.keybind_hint\": \"Tip: Press [T] to chat. An optional key can be set in Controls.\",\n"
                     + "  \"config.player_to_block\": \"Player to block...\",\n"
@@ -355,6 +359,10 @@ public class LanguageManager {
         map.put("config.preview_msg2", "RetroChat preview is crystal clear!");
         map.put("config.done", "Done");
         map.put("chat.type_message", "Type a message...");
+        map.put("chat.insert_coords", "Insert Coordinates [XYZ]");
+        map.put("chat.search_messages", "Search chat...");
+        map.put("chat.search_toggle", "Search Messages");
+        map.put("chat.no_search_results", "No matching messages found.");
         map.put("chat.no_messages", "No messages yet.");
         map.put("chat.player_blocked", "Player is blocked.");
         map.put("chat.sent_while_blocked", "Sent while player was blocked");
@@ -396,6 +404,10 @@ public class LanguageManager {
         map.put("config.preview_msg2", "RetroChat önizlemesi harika görünüyor!");
         map.put("config.done", "Tamam");
         map.put("chat.type_message", "Bir mesaj yazın...");
+        map.put("chat.insert_coords", "Koordinat Ekle [XYZ]");
+        map.put("chat.search_messages", "Sohbette ara...");
+        map.put("chat.search_toggle", "Mesajlarda Ara");
+        map.put("chat.no_search_results", "Eşleşen mesaj bulunamadı.");
         map.put("chat.no_messages", "Henüz mesaj yok.");
         map.put("chat.player_blocked", "Bu oyuncu engellendi.");
         map.put("chat.sent_while_blocked", "Oyuncu engelliyken gönderildi");
@@ -437,6 +449,10 @@ public class LanguageManager {
         map.put("config.preview_msg2", "RetroChat Vorschau ist kristallklar!");
         map.put("config.done", "Fertig");
         map.put("chat.type_message", "Nachricht schreiben...");
+        map.put("chat.insert_coords", "Koordinaten einfügen [XYZ]");
+        map.put("chat.search_messages", "Chat durchsuchen...");
+        map.put("chat.search_toggle", "Nachrichten suchen");
+        map.put("chat.no_search_results", "Keine passenden Nachrichten gefunden.");
         map.put("chat.no_messages", "Noch keine Nachrichten.");
         map.put("chat.player_blocked", "Spieler ist blockiert.");
         map.put("chat.sent_while_blocked", "Gesendet, während der Spieler blockiert war");
@@ -478,6 +494,10 @@ public class LanguageManager {
         map.put("config.preview_msg2", "Предпросмотр RetroChat кристально чистый!");
         map.put("config.done", "Готово");
         map.put("chat.type_message", "Напишите сообщение...");
+        map.put("chat.insert_coords", "Вставить координаты [XYZ]");
+        map.put("chat.search_messages", "Поиск в чате...");
+        map.put("chat.search_toggle", "Поиск сообщений");
+        map.put("chat.no_search_results", "Совпадающих сообщений не найдено.");
         map.put("chat.no_messages", "Пока нет сообщений.");
         map.put("chat.player_blocked", "Игрок заблокирован.");
         map.put("chat.sent_while_blocked", "Отправлено, когда игрок был заблокирован");
@@ -519,6 +539,10 @@ public class LanguageManager {
         map.put("config.preview_msg2", "¡La vista previa de RetroChat es cristalina!");
         map.put("config.done", "Hecho");
         map.put("chat.type_message", "Escribe un mensaje...");
+        map.put("chat.insert_coords", "Insertar coordenadas [XYZ]");
+        map.put("chat.search_messages", "Buscar en el chat...");
+        map.put("chat.search_toggle", "Buscar mensajes");
+        map.put("chat.no_search_results", "No se encontraron mensajes coincidentes.");
         map.put("chat.no_messages", "No hay mensajes aún.");
         map.put("chat.player_blocked", "El jugador está bloqueado.");
         map.put("chat.sent_while_blocked", "Enviado mientras el jugador estaba bloqueado");
@@ -560,6 +584,10 @@ public class LanguageManager {
         map.put("config.preview_msg2", "L'aperçu de RetroChat est limpide !");
         map.put("config.done", "Terminé");
         map.put("chat.type_message", "Écrivez un message...");
+        map.put("chat.insert_coords", "Insérer les coordonnées [XYZ]");
+        map.put("chat.search_messages", "Rechercher dans le chat...");
+        map.put("chat.search_toggle", "Rechercher des messages");
+        map.put("chat.no_search_results", "Aucun message correspondant trouvé.");
         map.put("chat.no_messages", "Aucun message pour le moment.");
         map.put("chat.player_blocked", "Le joueur est bloqué.");
         map.put("chat.sent_while_blocked", "Envoyé pendant que le joueur était bloqué");
