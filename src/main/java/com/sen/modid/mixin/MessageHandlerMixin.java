@@ -41,6 +41,7 @@ public class MessageHandlerMixin {
 
     @Inject(method = "onChatMessage", at = @At("HEAD"), cancellable = true)
     private void onChatMessage(SignedMessage message, GameProfile senderProfile, MessageType.Parameters params, CallbackInfo ci) {
+        if (!RetroChatConfig.getInstance().modEnabled) return;
         if (params.type().matchesKey(MessageType.MSG_COMMAND_INCOMING)) {
             String senderName = senderProfile.getName();
             boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(senderName);
@@ -76,6 +77,7 @@ public class MessageHandlerMixin {
 
     @Inject(method = "onProfilelessMessage", at = @At("HEAD"), cancellable = true)
     private void onProfilelessMessage(Text message, MessageType.Parameters params, CallbackInfo ci) {
+        if (!RetroChatConfig.getInstance().modEnabled) return;
         if (params.type().matchesKey(MessageType.MSG_COMMAND_INCOMING)) {
             String senderName = params.name().getString();
             boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(senderName);
@@ -110,6 +112,7 @@ public class MessageHandlerMixin {
 
     @Inject(method = "onGameMessage", at = @At("HEAD"), cancellable = true)
     private void onGameMessage(Text message, boolean overlay, CallbackInfo ci) {
+        if (!RetroChatConfig.getInstance().modEnabled) return;
         if (overlay) return;
         String raw = message.getString();
 

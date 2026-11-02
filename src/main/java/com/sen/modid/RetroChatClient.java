@@ -50,6 +50,7 @@ public class RetroChatClient implements ClientModInitializer {
             lastScreen = currentScreen;
 
             while (toggleChatKey.wasPressed()) {
+                if (!RetroChatConfig.getInstance().modEnabled) continue;
                 if (client.world != null) {
                     if (client.currentScreen == null) {
                         client.setScreen(new RetroChatOverlayScreen());

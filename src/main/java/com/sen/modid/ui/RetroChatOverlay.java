@@ -66,7 +66,7 @@ public class RetroChatOverlay {
 
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null || client.options.hudHidden) return;
+        if (client.world == null || client.options.hudHidden || !RetroChatConfig.getInstance().modEnabled) return;
 
         ConversationManager.getInstance().updateServerScope();
 
@@ -188,7 +188,7 @@ public class RetroChatOverlay {
     }
 
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        if (MinecraftClient.getInstance().world == null) return false;
+        if (MinecraftClient.getInstance().world == null || !RetroChatConfig.getInstance().modEnabled) return false;
         float scale = RetroChatConfig.getInstance().uiScale;
         double scaledMouseX = mouseX / scale;
         double scaledMouseY = mouseY / scale;
@@ -197,7 +197,7 @@ public class RetroChatOverlay {
     }
 
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (MinecraftClient.getInstance().world == null) return false;
+        if (MinecraftClient.getInstance().world == null || !RetroChatConfig.getInstance().modEnabled) return false;
         float scale = RetroChatConfig.getInstance().uiScale;
         double scaledMouseX = mouseX / scale;
         double scaledMouseY = mouseY / scale;
@@ -206,7 +206,7 @@ public class RetroChatOverlay {
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (MinecraftClient.getInstance().world == null) return false;
+        if (MinecraftClient.getInstance().world == null || !RetroChatConfig.getInstance().modEnabled) return false;
         float scale = RetroChatConfig.getInstance().uiScale;
         double scaledMouseX = mouseX / scale;
         double scaledMouseY = mouseY / scale;
@@ -230,7 +230,7 @@ public class RetroChatOverlay {
     }
 
     public boolean isAnyInputFocused() {
-        if (MinecraftClient.getInstance().world == null) return false;
+        if (MinecraftClient.getInstance().world == null || !RetroChatConfig.getInstance().modEnabled) return false;
         if (sidebarWidget.isSearchFocused()) return true;
         for (ChatWindowWidget window : windowWidgets.values()) {
             if (window.isFocused() || window.isSearchFocused()) return true;
@@ -257,7 +257,7 @@ public class RetroChatOverlay {
     }
 
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        if (MinecraftClient.getInstance().world == null) return false;
+        if (MinecraftClient.getInstance().world == null || !RetroChatConfig.getInstance().modEnabled) return false;
         float scale = RetroChatConfig.getInstance().uiScale;
         double scaledMouseX = mouseX / scale;
         double scaledMouseY = mouseY / scale;
@@ -276,7 +276,7 @@ public class RetroChatOverlay {
     }
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (MinecraftClient.getInstance().world == null) return false;
+        if (MinecraftClient.getInstance().world == null || !RetroChatConfig.getInstance().modEnabled) return false;
         if (sidebarWidget.keyPressed(keyCode, scanCode, modifiers)) {
             return true;
         }
@@ -291,7 +291,7 @@ public class RetroChatOverlay {
     }
 
     public boolean charTyped(char chr, int modifiers) {
-        if (MinecraftClient.getInstance().world == null) return false;
+        if (MinecraftClient.getInstance().world == null || !RetroChatConfig.getInstance().modEnabled) return false;
         if (sidebarWidget.charTyped(chr, modifiers)) {
             return true;
         }
