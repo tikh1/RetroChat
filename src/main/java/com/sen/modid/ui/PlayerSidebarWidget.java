@@ -224,9 +224,12 @@ public class PlayerSidebarWidget {
 
         Map<String, PlayerEntryData> entryMap = new LinkedHashMap<>();
 
+        String localPlayer = cm.getLocalPlayerName();
+
         // recent conversations excluding blocked players
         for (Conversation conv : cm.getConversationsMru()) {
             String name = conv.getPlayerName();
+            if (name.equalsIgnoreCase(localPlayer)) continue;
             if (client.player != null && name.equalsIgnoreCase(client.player.getName().getString())) continue;
             if (config.isPlayerBlocked(name)) continue;
             if (!filterQuery.isEmpty() && !name.toLowerCase().contains(filterQuery)) continue;
@@ -245,6 +248,7 @@ public class PlayerSidebarWidget {
 
             for (PlayerInfo ple : onlineList) {
                 String name = ple.getProfile().getName();
+                if (name.equalsIgnoreCase(localPlayer)) continue;
                 if (client.player != null && name.equalsIgnoreCase(client.player.getName().getString())) {
                     continue; // skip self
                 }
