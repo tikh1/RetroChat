@@ -174,10 +174,9 @@ public class RetroChatOverlay {
             finalOpenWindows.get(i).render(context, mouseX, mouseY, delta);
         }
 
+        int tabY = screenHeight - 18;
         for (ChatWindowWidget tabWindow : minimizedCandidates) {
             int windowX = currentRightX - tabWidth;
-            boolean overlapsHotbar = windowX < hotbarRight && (windowX + tabWidth) > hotbarLeft;
-            int tabY = overlapsHotbar ? (screenHeight - 18 - hotbarClearance) : (screenHeight - 18);
 
             if (windowX >= 2) {
                 tabWindow.setPosition(windowX, tabY);
@@ -234,7 +233,7 @@ public class RetroChatOverlay {
         if (Minecraft.getInstance().level == null) return false;
         if (sidebarWidget.isSearchFocused()) return true;
         for (ChatWindowWidget window : windowWidgets.values()) {
-            if (window.isFocused()) return true;
+            if (window.isFocused() || window.isSearchFocused()) return true;
         }
         return false;
     }
