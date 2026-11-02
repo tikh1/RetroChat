@@ -236,11 +236,18 @@ public class ChatWindowWidget {
         context.drawText(tr, ":)", emojiBtnX + (emojiBtnW - smileyW) / 2, emojiBtnY + 2, smileyColor, false);
 
         if (emojiPickerOpen) {
+            context.draw();
+            context.getMatrices().push();
+            context.getMatrices().translate(0.0F, 0.0F, 200.0F);
+
             int panelW = Math.min(width - 8, 175);
             int panelH = Math.min(height - HEADER_HEIGHT - 36, 125);
             int panelX = x + width - panelW - 4;
             int panelY = y + height - 33 - panelH;
             emojiPicker.render(context, tr, mouseX, mouseY, panelX, panelY, panelW, panelH);
+
+            context.draw();
+            context.getMatrices().pop();
         }
 
         if (coordHovered) {

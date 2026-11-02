@@ -35,8 +35,10 @@ public class AsciiEmojiPicker {
     private int scrollOffset = 0;
 
     public void render(DrawContext context, TextRenderer tr, int mouseX, int mouseY, int x, int y, int width, int height) {
-        // Draw panel background and border
-        GuiUtils.drawBeveledBox(context, x, y, width, height, GuiUtils.WINDOW_BG, GuiUtils.WINDOW_BORDER_LIGHT, GuiUtils.WINDOW_BORDER_DARK);
+        // Draw solid opaque panel background and border
+        context.fill(x, y, x + width, y + height, 0xFF121A14);
+        GuiUtils.drawBeveledBox(context, x, y, width, height, 0xFF121A14, GuiUtils.WINDOW_BORDER_LIGHT, GuiUtils.WINDOW_BORDER_DARK);
+        context.fill(x + 1, y + 15, x + width - 1, y + 28, 0xFF18241D);
 
         // Header
         GuiUtils.drawWindowHeader(context, x + 1, y + 1, width - 2, 13, true);
@@ -71,7 +73,8 @@ public class AsciiEmojiPicker {
         int gridW = width - 8;
         int gridH = height - 34;
 
-        GuiUtils.drawBeveledBox(context, gridX, gridY, gridW, gridH, GuiUtils.INNER_BOX_BG, GuiUtils.INNER_BOX_LIGHT, GuiUtils.INNER_BOX_DARK);
+        context.fill(gridX, gridY, gridX + gridW, gridY + gridH, 0xFF0A100C);
+        GuiUtils.drawBeveledBox(context, gridX, gridY, gridW, gridH, 0xFF0A100C, GuiUtils.INNER_BOX_LIGHT, GuiUtils.INNER_BOX_DARK);
 
         List<String> list = getList(selectedCategory);
         int cols = selectedCategory == 0 ? 4 : (selectedCategory == 1 ? 2 : 1);
