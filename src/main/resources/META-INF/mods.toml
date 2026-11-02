@@ -1,10 +1,10 @@
 modLoader="javafml"
-loaderVersion="[4,)"
+loaderVersion="[47,)"
 license="MIT"
 
 [[mods]]
 modId="retrochat"
-version="1.0.0"
+version="1.0.1"
 displayName="RetroChat"
 logoFile="assets/retrochat/icon.png"
 authors="tikhi"
@@ -16,15 +16,15 @@ Discord: .tikhi
 GitHub: tikh1'''
 
 [[dependencies.retrochat]]
-    modId="neoforge"
-    type="required"
-    versionRange="[21.1.0,)"
+    modId="forge"
+    mandatory=true
+    versionRange="[47.0.0,)"
     ordering="NONE"
     side="CLIENT"
 
 [[dependencies.retrochat]]
     modId="minecraft"
-    type="required"
-    versionRange="[1.21.1,1.21.2)"
+    mandatory=true
+    versionRange="[1.20.1,1.20.2)"
     ordering="NONE"
     side="CLIENT"

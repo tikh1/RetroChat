@@ -52,11 +52,11 @@ public class RetroChatOverlayScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        if (RetroChatOverlay.getInstance().mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        if (RetroChatOverlay.getInstance().mouseScrolled(mouseX, mouseY, amount)) {
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+        return super.mouseScrolled(mouseX, mouseY, amount);
     }
 
     @Override

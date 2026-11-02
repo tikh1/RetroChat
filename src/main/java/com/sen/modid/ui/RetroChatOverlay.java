@@ -256,18 +256,18 @@ public class RetroChatOverlay {
         }
     }
 
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         if (Minecraft.getInstance().level == null) return false;
         float scale = RetroChatConfig.getInstance().uiScale;
         double scaledMouseX = mouseX / scale;
         double scaledMouseY = mouseY / scale;
 
-        if (sidebarWidget.mouseScrolled(scaledMouseX, scaledMouseY, horizontalAmount, verticalAmount)) {
+        if (sidebarWidget.mouseScrolled(scaledMouseX, scaledMouseY, amount)) {
             return true;
         }
 
         for (ChatWindowWidget window : windowWidgets.values()) {
-            if (window.mouseScrolled(scaledMouseX, scaledMouseY, horizontalAmount, verticalAmount)) {
+            if (window.mouseScrolled(scaledMouseX, scaledMouseY, amount)) {
                 return true;
             }
         }

@@ -6,7 +6,8 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.PlayerFaceRenderer;
 import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.client.resources.DefaultPlayerSkin;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
 
@@ -233,16 +234,16 @@ public class GuiUtils {
         context.drawString(font, text, textX, textY, 0xFFFFFFFF, true);
     }
 
-    public static void drawPlayerHead(GuiGraphics context, PlayerSkin skinTextures, int x, int y, int size) {
-        if (skinTextures != null) {
-            PlayerFaceRenderer.draw(context, skinTextures, x, y, size);
+    public static void drawPlayerHead(GuiGraphics context, ResourceLocation skinLocation, int x, int y, int size) {
+        if (skinLocation != null) {
+            PlayerFaceRenderer.draw(context, skinLocation, x, y, size);
         } else {
             context.fill(x, y, x + size, y + size, 0xFF355440);
             context.renderOutline(x, y, size, size, 0xFF16291E);
         }
     }
 
-    public static PlayerSkin getPlayerSkin(UUID uuid, String name) {
+    public static ResourceLocation getPlayerSkin(UUID uuid, String name) {
         Minecraft client = Minecraft.getInstance();
         if (client.getConnection() != null) {
             PlayerInfo entry = null;
@@ -252,20 +253,20 @@ public class GuiUtils {
             if (entry == null && name != null) {
                 entry = client.getConnection().getPlayerInfo(name);
             }
-            if (entry != null) {
-                return entry.getSkin();
+            if (entry != null && entry.getSkinLocation() != null) {
+                return entry.getSkinLocation();
             }
         }
         if (client.player != null && name != null && name.equalsIgnoreCase(client.player.getName().getString())) {
-            return client.player.getSkin();
+            return client.player.getSkinTextureLocation();
         }
         if (uuid != null && client.getSkinManager() != null) {
-            return client.getSkinManager().getInsecureSkin(new GameProfile(uuid, name != null ? name : ""));
+            return client.getSkinManager().getInsecureSkinLocation(new GameProfile(uuid, name != null ? name : ""));
         }
         if (name != null && client.getSkinManager() != null) {
             UUID offlineUuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8));
-            return client.getSkinManager().getInsecureSkin(new GameProfile(offlineUuid, name));
+            return client.getSkinManager().getInsecureSkinLocation(new GameProfile(offlineUuid, name));
         }
-        return null;
+        return DefaultPlayerSkin.getDefaultSkin();
     }
 }

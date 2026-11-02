@@ -8,10 +8,12 @@ import com.sen.modid.ui.RetroChatOverlay;
 import com.sen.modid.ui.RetroChatOverlayScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.client.event.*;
+import net.minecraft.resources.ResourceKey;
+import net.minecraftforge.client.event.*;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -37,6 +39,15 @@ public class RetroChatClientEventHandler {
         Pattern.compile("^\\[to (\\w+)\\]:? (.*)$", Pattern.CASE_INSENSITIVE)
     };
 
+    private static boolean isChatType(ChatType.Bound bound, ResourceKey<ChatType> key) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null || bound == null) return false;
+        return client.level.registryAccess().registry(Registries.CHAT_TYPE)
+            .flatMap(reg -> reg.getResourceKey(bound.chatType()))
+            .map(k -> k.equals(key))
+            .orElse(false);
+    }
+
     @SubscribeEvent
     public void onLoggingIn(ClientPlayerNetworkEvent.LoggingIn event) {
         ConversationManager.getInstance().updateServerScope();
@@ -54,7 +65,7 @@ public class RetroChatClientEventHandler {
         }
         ChatType.Bound params = event.getBoundChatType();
         if (params != null) {
-            if (params.chatType().is(ChatType.MSG_COMMAND_INCOMING)) {
+            if (isChatType(params, ChatType.MSG_COMMAND_INCOMING)) {
                 String senderName = params.name().getString();
                 boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(senderName);
                 if (isBlocked) {
@@ -76,8 +87,8 @@ public class RetroChatClientEventHandler {
                     event.setCanceled(true);
                 }
                 return;
-            } else if (params.chatType().is(ChatType.MSG_COMMAND_OUTGOING)) {
-                String targetName = params.targetName().map(Component::getString).orElse("Unknown");
+            } else if (isChatType(params, ChatType.MSG_COMMAND_OUTGOING)) {
+                String targetName = params.targetName() != null ? params.targetName().getString() : "Unknown";
                 boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(targetName);
                 if (isBlocked) {
                     event.setCanceled(true);
@@ -152,7 +163,7 @@ public class RetroChatClientEventHandler {
         if (!RetroChatConfig.getInstance().modEnabled) return;
         Minecraft client = Minecraft.getInstance();
         if (client.level != null && client.screen == null) {
-            RetroChatOverlay.getInstance().render(event.getGuiGraphics(), -1000, -1000, event.getPartialTick().getGameTimeDeltaPartialTick(true));
+            RetroChatOverlay.getInstance().render(event.getGuiGraphics(), -1000, -1000, event.getPartialTick());
         }
     }
 
@@ -210,7 +221,7 @@ public class RetroChatClientEventHandler {
         if (client.level == null) return;
         Screen screen = event.getScreen();
         if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
-        if (RetroChatOverlay.getInstance().mouseScrolled(event.getMouseX(), event.getMouseY(), event.getScrollDeltaX(), event.getScrollDeltaY())) {
+        if (RetroChatOverlay.getInstance().mouseScrolled(event.getMouseX(), event.getMouseY(), event.getScrollDelta())) {
             event.setCanceled(true);
         }
     }

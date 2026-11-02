@@ -193,9 +193,9 @@ public class AsciiEmojiPicker {
         return true;
     }
 
-    public boolean mouseScrolled(double mouseX, double mouseY, double amountX, double amountY, int x, int y, int width, int height) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount, int x, int y, int width, int height) {
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
-            scrollOffset -= (int) (amountY * 16);
+            scrollOffset -= (int) (amount * 16);
             return true;
         }
         return false;

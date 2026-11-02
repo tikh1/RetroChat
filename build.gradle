@@ -1,10 +1,10 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.148'
+    id 'net.neoforged.moddev.legacyforge' version '2.0.148'
 }
 
-version = "${project.mod_version}-neoforge-${project.minecraft_version}"
+version = "${project.mod_version}-forge-${project.minecraft_version}"
 group = project.maven_group
 
 base {
@@ -13,18 +13,18 @@ base {
 
 java {
     withSourcesJar()
-    toolchain.languageVersion = JavaLanguageVersion.of(21)
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
 }
 
-neoForge {
-    version = project.neo_version
+legacyForge {
+    version = project.forge_version
 
     validateAccessTransformers = true
 
     runs {
         client {
             client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', 'retrochat'
+            systemProperty 'forge.enabledGameTestNamespaces', 'retrochat'
         }
     }
 
@@ -41,10 +41,10 @@ repositories {
 
 tasks.named('jar', Jar) {
     destinationDirectory = layout.buildDirectory.dir("libs/mods")
-    archiveFileName = "${project.archives_base_name}-${project.mod_version}-neoforge-${project.minecraft_version}.jar"
+    archiveFileName = "${project.archives_base_name}-${project.mod_version}-forge-${project.minecraft_version}.jar"
 }
 
 tasks.named('sourcesJar', Jar) {
     destinationDirectory = layout.buildDirectory.dir("libs/sources")
-    archiveFileName = "${project.archives_base_name}-${project.mod_version}-neoforge-${project.minecraft_version}-sources.jar"
+    archiveFileName = "${project.archives_base_name}-${project.mod_version}-forge-${project.minecraft_version}-sources.jar"
 }

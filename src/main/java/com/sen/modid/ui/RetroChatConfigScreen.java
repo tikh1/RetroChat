@@ -14,11 +14,11 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
-import net.neoforged.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.io.File;
 import java.util.*;
@@ -200,7 +200,7 @@ public class RetroChatConfigScreen extends Screen {
             }
         }
 
-        renderBackground(context, mouseX, mouseY, delta);
+        renderBackground(context);
 
         if (isDraggingPreview) {
             super.render(context, mouseX, mouseY, delta);
@@ -427,7 +427,7 @@ public class RetroChatConfigScreen extends Screen {
             return;
         }
 
-        PlayerSkin skin = GuiUtils.getPlayerSkin(item.uuid, item.name);
+        ResourceLocation skin = GuiUtils.getPlayerSkin(item.uuid, item.name);
         GuiUtils.drawPlayerHead(context, skin, boxX + 8, y + 3, 11);
 
         if (!item.isBlocked) {
@@ -483,7 +483,7 @@ public class RetroChatConfigScreen extends Screen {
         msg1.append(Component.literal("Steve: ").withStyle(s -> s.withColor(0x4ADE80)));
         msg1.append(Component.literal(LanguageManager.get("config.preview_msg1")).withStyle(s -> s.withColor(0xFFFFFF)));
 
-        PlayerSkin steveSkin = GuiUtils.getPlayerSkin(null, "Steve");
+        ResourceLocation steveSkin = GuiUtils.getPlayerSkin(null, "Steve");
         List<FormattedCharSequence> lines1 = font.split(msg1, availWidth);
         for (int i = 0; i < lines1.size(); i++) {
             if (currentLineY + 9 <= msgY + msgH - 2) {
@@ -509,7 +509,7 @@ public class RetroChatConfigScreen extends Screen {
         msg2.append(Component.literal(LanguageManager.get("chat.you") + ": ").withStyle(s -> s.withColor(0xF97316)));
         msg2.append(Component.literal(LanguageManager.get("config.preview_msg2")).withStyle(s -> s.withColor(0xFEF08A)));
 
-        PlayerSkin mySkin = (minecraft != null && minecraft.player != null) ? minecraft.player.getSkin() : null;
+        ResourceLocation mySkin = (minecraft != null && minecraft.player != null) ? minecraft.player.getSkinTextureLocation() : null;
         List<FormattedCharSequence> lines2 = font.split(msg2, availWidth);
         for (int i = 0; i < lines2.size(); i++) {
             if (currentLineY + 9 <= msgY + msgH - 2) {
@@ -639,7 +639,7 @@ public class RetroChatConfigScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         int centerX = width / 2;
         int boxX = centerX - 155;
         int boxY = 146;
@@ -648,9 +648,9 @@ public class RetroChatConfigScreen extends Screen {
 
         if (mouseX >= boxX && mouseX <= boxX + boxWidth && mouseY >= boxY && mouseY <= boxY + boxHeight) {
             if (maxPlayerListScroll > 0) {
-                int delta = (int) (verticalAmount * 18);
-                if (delta == 0 && verticalAmount != 0) {
-                    delta = verticalAmount > 0 ? 18 : -18;
+                int delta = (int) (amount * 18);
+                if (delta == 0 && amount != 0) {
+                    delta = amount > 0 ? 18 : -18;
                 }
                 playerListScroll -= delta;
                 playerListScroll = Math.max(0, Math.min(playerListScroll, maxPlayerListScroll));
@@ -658,7 +658,7 @@ public class RetroChatConfigScreen extends Screen {
             }
         }
 
-        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+        return super.mouseScrolled(mouseX, mouseY, amount);
     }
 
     private class PreviewSlider extends AbstractSliderButton {

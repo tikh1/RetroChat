@@ -10,7 +10,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 
 import java.util.*;
@@ -236,7 +236,7 @@ public class PlayerSidebarWidget {
 
             PlayerInfo ple = (client.getConnection() != null) ? client.getConnection().getPlayerInfo(name) : null;
             boolean online = ple != null;
-            PlayerSkin skin = (ple != null && ple.getSkin() != null) ? ple.getSkin() : GuiUtils.getPlayerSkin(conv.getPlayerUuid(), name);
+            ResourceLocation skin = (ple != null && ple.getSkinLocation() != null) ? ple.getSkinLocation() : GuiUtils.getPlayerSkin(conv.getPlayerUuid(), name);
 
             entryMap.put(name.toLowerCase(), new PlayerEntryData(name, conv.getPlayerUuid(), skin, online, conv.getUnreadCount(), conv.getLastMessageTimestamp()));
         }
@@ -256,7 +256,7 @@ public class PlayerSidebarWidget {
                 if (!filterQuery.isEmpty() && !name.toLowerCase().contains(filterQuery)) continue;
 
                 if (!entryMap.containsKey(name.toLowerCase())) {
-                    entryMap.put(name.toLowerCase(), new PlayerEntryData(name, ple.getProfile().getId(), ple.getSkin(), true, 0, 0));
+                    entryMap.put(name.toLowerCase(), new PlayerEntryData(name, ple.getProfile().getId(), ple.getSkinLocation(), true, 0, 0));
                 }
             }
         }
@@ -368,13 +368,13 @@ public class PlayerSidebarWidget {
         return false;
     }
 
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         if (collapsed) return false;
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
             if (maxScroll > 0) {
-                int delta = (int) (verticalAmount * 18);
-                if (delta == 0 && verticalAmount != 0) {
-                    delta = verticalAmount > 0 ? 18 : -18;
+                int delta = (int) (amount * 18);
+                if (delta == 0 && amount != 0) {
+                    delta = amount > 0 ? 18 : -18;
                 }
                 scrollOffset -= delta;
                 scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
@@ -405,12 +405,12 @@ public class PlayerSidebarWidget {
     private static class PlayerEntryData {
         final String playerName;
         final UUID playerUuid;
-        final PlayerSkin skinTextures;
+        final ResourceLocation skinTextures;
         final boolean isOnline;
         final int unreadCount;
         final long lastMessageTimestamp;
 
-        PlayerEntryData(String playerName, UUID playerUuid, PlayerSkin skinTextures, boolean isOnline, int unreadCount, long lastMessageTimestamp) {
+        PlayerEntryData(String playerName, UUID playerUuid, ResourceLocation skinTextures, boolean isOnline, int unreadCount, long lastMessageTimestamp) {
             this.playerName = playerName;
             this.playerUuid = playerUuid;
             this.skinTextures = skinTextures;
