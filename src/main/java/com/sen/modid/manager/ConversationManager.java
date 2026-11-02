@@ -172,10 +172,7 @@ public class ConversationManager {
 
     public synchronized void addMessage(String partnerName, UUID partnerUuid, DirectMessage message) {
         updateServerScope();
-        boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(partnerName);
-        if (isBlocked && message.isIncoming()) {
-            return; // drop incoming message if sender is BLOCKED
-        }
+        boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(partnerName) || message.wasBlocked();
 
         Conversation conv = getOrCreateConversation(partnerName, partnerUuid);
 
