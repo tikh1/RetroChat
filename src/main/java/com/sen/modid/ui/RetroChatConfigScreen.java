@@ -139,7 +139,7 @@ public class RetroChatConfigScreen extends Screen {
                 LanguageManager.getInstance().cycleLanguage();
                 rebuildWidgets();
             }
-        ).bounds(centerX - 87, startY + 96, 150, 20).build());
+        ).bounds(centerX - 155, startY + 96, 126, 20).build());
 
         File langDir = FMLPaths.CONFIGDIR.get().resolve("retrochat").resolve("lang").toFile();
         addRenderableWidget(Button.builder(Component.literal("?"), b -> {
@@ -148,8 +148,17 @@ public class RetroChatConfigScreen extends Screen {
             }
         })
         .tooltip(Tooltip.create(Component.literal(LanguageManager.get("config.language_help"))))
-        .bounds(centerX + 67, startY + 96, 20, 20)
+        .bounds(centerX - 25, startY + 96, 20, 20)
         .build());
+
+        addRenderableWidget(Button.builder(
+            Component.literal(LanguageManager.get("config.compact_tabs") + ": " + (config.compactTabs ? "ON" : "OFF")),
+            button -> {
+                config.compactTabs = !config.compactTabs;
+                button.setMessage(Component.literal(LanguageManager.get("config.compact_tabs") + ": " + (config.compactTabs ? "ON" : "OFF")));
+                config.save();
+            }
+        ).bounds(centerX + 5, startY + 96, 150, 20).build());
 
         int boxX = centerX - 155;
         int boxY = 146;

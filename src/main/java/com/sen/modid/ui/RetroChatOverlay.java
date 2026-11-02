@@ -146,9 +146,11 @@ public class RetroChatOverlay {
 
         int numTabs = minimizedCandidates.size();
         int spaceLeftForTabs = Math.max(0, availableWidth - currentUsedWidth);
-        int tabWidth = 100;
+        boolean compact = RetroChatConfig.getInstance().compactTabs;
+        int maxTabWidth = compact ? 22 : 100;
+        int tabWidth = maxTabWidth;
         if (numTabs > 0) {
-            tabWidth = Math.max(28, Math.min(100, (spaceLeftForTabs - (numTabs * 4)) / numTabs));
+            tabWidth = Math.max(22, Math.min(maxTabWidth, (spaceLeftForTabs - (numTabs * 4)) / numTabs));
         }
 
         int currentRightX = screenWidth - sidebarOccupiedWidth - 4;
