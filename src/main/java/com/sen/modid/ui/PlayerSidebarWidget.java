@@ -228,6 +228,7 @@ public class PlayerSidebarWidget {
         // recent conversations excluding blocked players
         for (Conversation conv : cm.getConversationsMru()) {
             String name = conv.getPlayerName();
+            if (client.player != null && name.equalsIgnoreCase(client.player.getName().getString())) continue;
             if (config.isPlayerBlocked(name)) continue;
             if (!filterQuery.isEmpty() && !name.toLowerCase().contains(filterQuery)) continue;
 
@@ -322,7 +323,9 @@ public class PlayerSidebarWidget {
                     PlayerEntryData selected = entries.get(clickedIndex);
                     ConversationManager.getInstance().openWindow(selected.playerName);
                     ConversationManager.getInstance().markAsRead(selected.playerName);
-                    ChatWindowWidget window = RetroChatOverlay.getInstance().getOrCreateWindow(selected.playerName);
+                    RetroChatOverlay overlay = RetroChatOverlay.getInstance();
+                    overlay.unfocusAll();
+                    ChatWindowWidget window = overlay.getOrCreateWindow(selected.playerName);
                     window.focusInput();
                     return true;
                 }
