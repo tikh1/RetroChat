@@ -214,15 +214,57 @@ public class ConversationManager {
             }
         } else {
             ServerInfo server = client.getCurrentServerEntry();
-            if (server != null && server.address != null && !server.address.trim().isEmpty()) {
-                newKey = playerPrefix + "_mp_" + server.address.trim().replace(':', '_').replace('/', '_');
-            } else if (client.getNetworkHandler() != null && client.getNetworkHandler().getConnection() != null) {
+            boolean isLan = false;
+            String serverAddr = "";
+            String serverName = "";
+
+            if (server != null) {
+                if (server.address != null) {
+                    serverAddr = server.address.trim();
+                }
+                if (server.name != null) {
+                    serverName = server.name.trim();
+                }
+                if (server.isLocal()) {
+                    isLan = true;
+                }
+            }
+
+            if (serverAddr.isEmpty() && client.getNetworkHandler() != null && client.getNetworkHandler().getConnection() != null) {
                 java.net.SocketAddress socketAddr = client.getNetworkHandler().getConnection().getAddress();
                 if (socketAddr instanceof java.net.InetSocketAddress inet) {
-                    newKey = playerPrefix + "_mp_" + inet.getHostString() + "_" + inet.getPort();
+                    serverAddr = inet.getHostString() + "_" + inet.getPort();
+                    java.net.InetAddress addr = inet.getAddress();
+                    if (addr != null && (addr.isLoopbackAddress() || addr.isSiteLocalAddress() || addr.isLinkLocalAddress())) {
+                        isLan = true;
+                    }
                 } else if (socketAddr != null && !socketAddr.toString().startsWith("local:")) {
-                    newKey = playerPrefix + "_mp_" + socketAddr.toString().replace(':', '_').replace('/', '_');
+                    serverAddr = socketAddr.toString();
                 }
+            }
+
+            if (!isLan && !serverAddr.isEmpty()) {
+                String host = serverAddr.contains(":") ? serverAddr.substring(0, serverAddr.indexOf(':')) : serverAddr;
+                if (host.equalsIgnoreCase("localhost") || host.equals("127.0.0.1") || host.startsWith("192.168.") || host.startsWith("10.")) {
+                    isLan = true;
+                }
+            }
+
+            if (isLan) {
+                String cleanName = serverName.replaceAll("[^a-zA-Z0-9_-]", "_");
+                if (cleanName.isEmpty() || cleanName.equalsIgnoreCase("Minecraft_Server")) {
+                    cleanName = "lan";
+                }
+                String spawnSuffix = "";
+                try {
+                    if (client.world != null && client.world.getSpawnPos() != null) {
+                        net.minecraft.util.math.BlockPos sp = client.world.getSpawnPos();
+                        spawnSuffix = "_spw" + sp.getX() + "_" + sp.getZ();
+                    }
+                } catch (Throwable ignored) {}
+                newKey = playerPrefix + "_lan_" + cleanName + "_" + serverAddr.replace(':', '_').replace('/', '_') + spawnSuffix;
+            } else if (!serverAddr.isEmpty()) {
+                newKey = playerPrefix + "_mp_" + serverAddr.replace(':', '_').replace('/', '_');
             }
         }
 
