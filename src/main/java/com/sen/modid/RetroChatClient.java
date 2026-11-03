@@ -35,6 +35,6 @@ public class RetroChatClient {
 
         MinecraftForge.EVENT_BUS.register(new RetroChatClientEventHandler());
 
-        LOGGER.info("[RetroChat] Initialized successfully on Forge 26.2!");
+        LOGGER.info("[RetroChat] Initialized successfully on Forge 26.3!");
     }
 }
