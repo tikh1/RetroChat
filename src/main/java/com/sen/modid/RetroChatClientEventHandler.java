@@ -1,17 +1,21 @@
 package com.sen.modid;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.sen.modid.config.RetroChatConfig;
 import com.sen.modid.manager.ConversationManager;
 import com.sen.modid.model.DirectMessage;
 import com.sen.modid.ui.RetroChatConfigScreen;
 import com.sen.modid.ui.RetroChatOverlay;
 import com.sen.modid.ui.RetroChatOverlayScreen;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraftforge.client.event.*;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -19,6 +23,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RetroChatClientEventHandler {
+
+    private static Screen lastScreen = null;
 
     private static final Pattern[] INCOMING_PATTERNS = new Pattern[] {
         Pattern.compile("^(\\w+) whispers to you: (.*)$", Pattern.CASE_INSENSITIVE),
@@ -38,6 +44,18 @@ public class RetroChatClientEventHandler {
     };
 
     @SubscribeEvent
+    public void registerKeyMappings(RegisterKeyMappingsEvent event) {
+        KeyMapping.Category category = KeyMapping.Category.register(Identifier.parse("retrochat:category"));
+        KeyMapping toggleChatKey = new KeyMapping(
+            "key.retrochat.toggle",
+            InputConstants.UNKNOWN.getValue(),
+            category
+        );
+        event.register(toggleChatKey);
+        RetroChatClient.setToggleChatKey(toggleChatKey);
+    }
+
+    @SubscribeEvent
     public void onLoggingIn(ClientPlayerNetworkEvent.LoggingIn event) {
         ConversationManager.getInstance().updateServerScope();
     }
@@ -48,18 +66,38 @@ public class RetroChatClientEventHandler {
     }
 
     @SubscribeEvent
-    public void onChatReceived(ClientChatReceivedEvent event) {
+    public void onClientTick(TickEvent.ClientTickEvent.Post event) {
+        Minecraft client = Minecraft.getInstance();
+        Screen currentScreen = client.screen;
+        if (lastScreen != null && currentScreen == null) {
+            ConversationManager.getInstance().minimizeUnpinnedWindows();
+            RetroChatOverlay.getInstance().unfocusAll();
+        }
+        lastScreen = currentScreen;
+
+        KeyMapping key = RetroChatClient.getToggleChatKey();
+        while (key != null && key.consumeClick()) {
+            if (!RetroChatConfig.getInstance().modEnabled) continue;
+            if (client.level != null) {
+                if (client.screen == null) {
+                    client.setScreen(new RetroChatOverlayScreen());
+                } else if (client.screen instanceof RetroChatOverlayScreen) {
+                    client.setScreen(null);
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public boolean onChatReceived(ClientChatReceivedEvent event) {
         if (!RetroChatConfig.getInstance().modEnabled) {
-            return;
+            return false;
         }
         ChatType.Bound params = event.getBoundChatType();
         if (params != null) {
             if (params.chatType().is(ChatType.MSG_COMMAND_INCOMING)) {
                 String senderName = params.name().getString();
                 boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(senderName);
-                if (isBlocked) {
-                    event.setCanceled(true);
-                }
                 UUID senderUuid = event.getSender();
                 String content;
                 if (event instanceof ClientChatReceivedEvent.Player playerEvent) {
@@ -72,16 +110,13 @@ public class RetroChatClientEventHandler {
                 DirectMessage dm = new DirectMessage(senderUuid, senderName, null, "me", content, timestamp, true, isBlocked, isBlocked);
                 ConversationManager.getInstance().addMessage(senderName, senderUuid, dm);
 
-                if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
-                    event.setCanceled(true);
+                if (isBlocked || RetroChatConfig.getInstance().hideDmsInVanillaChat) {
+                    return true;
                 }
-                return;
+                return false;
             } else if (params.chatType().is(ChatType.MSG_COMMAND_OUTGOING)) {
                 String targetName = params.targetName().map(Component::getString).orElse("Unknown");
                 boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(targetName);
-                if (isBlocked) {
-                    event.setCanceled(true);
-                }
                 String content;
                 if (event instanceof ClientChatReceivedEvent.Player playerEvent) {
                     content = playerEvent.getPlayerChatMessage().signedContent();
@@ -95,15 +130,11 @@ public class RetroChatClientEventHandler {
                     ConversationManager.getInstance().addMessage(targetName, null, dm);
                 }
 
-                if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
-                    event.setCanceled(true);
+                if (isBlocked || RetroChatConfig.getInstance().hideDmsInVanillaChat) {
+                    return true;
                 }
-                return;
+                return false;
             }
-        }
-
-        if (event instanceof ClientChatReceivedEvent.System sys && sys.isOverlay()) {
-            return;
         }
 
         String raw = event.getMessage().getString();
@@ -113,16 +144,13 @@ public class RetroChatClientEventHandler {
             if (m.matches()) {
                 String sender = m.group(1);
                 boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(sender);
-                if (isBlocked) {
-                    event.setCanceled(true);
-                }
                 String content = m.group(2);
                 DirectMessage dm = new DirectMessage(null, sender, null, "me", content, Instant.now().toEpochMilli(), true, isBlocked, isBlocked);
                 ConversationManager.getInstance().addMessage(sender, null, dm);
-                if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
-                    event.setCanceled(true);
+                if (isBlocked || RetroChatConfig.getInstance().hideDmsInVanillaChat) {
+                    return true;
                 }
-                return;
+                return false;
             }
         }
 
@@ -131,20 +159,18 @@ public class RetroChatClientEventHandler {
             if (m.matches()) {
                 String target = m.group(1);
                 boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(target);
-                if (isBlocked) {
-                    event.setCanceled(true);
-                }
                 String content = m.group(2);
                 if (!ConversationManager.getInstance().consumePendingOutgoing(target, content)) {
                     DirectMessage dm = new DirectMessage(null, "me", null, target, content, Instant.now().toEpochMilli(), false, true, false);
                     ConversationManager.getInstance().addMessage(target, null, dm);
                 }
-                if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
-                    event.setCanceled(true);
+                if (isBlocked || RetroChatConfig.getInstance().hideDmsInVanillaChat) {
+                    return true;
                 }
-                return;
+                return false;
             }
         }
+        return false;
     }
 
     @SubscribeEvent
@@ -168,74 +194,62 @@ public class RetroChatClientEventHandler {
     }
 
     @SubscribeEvent
-    public void onScreenMouseClick(ScreenEvent.MouseButtonPressed.Pre event) {
-        if (!RetroChatConfig.getInstance().modEnabled) return;
+    public boolean onScreenMouseClick(ScreenEvent.MouseButtonPressed.Pre event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return false;
         Minecraft client = Minecraft.getInstance();
-        if (client.level == null) return;
+        if (client.level == null) return false;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
-        if (RetroChatOverlay.getInstance().mouseClicked(event.getMouseX(), event.getMouseY(), event.getButton())) {
-            event.setCanceled(true);
-        }
+        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return false;
+        return RetroChatOverlay.getInstance().mouseClicked(event.getMouseX(), event.getMouseY(), event.getInfo().button());
     }
 
     @SubscribeEvent
-    public void onScreenMouseRelease(ScreenEvent.MouseButtonReleased.Pre event) {
-        if (!RetroChatConfig.getInstance().modEnabled) return;
+    public boolean onScreenMouseRelease(ScreenEvent.MouseButtonReleased.Pre event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return false;
         Minecraft client = Minecraft.getInstance();
-        if (client.level == null) return;
+        if (client.level == null) return false;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
-        if (RetroChatOverlay.getInstance().mouseReleased(event.getMouseX(), event.getMouseY(), event.getButton())) {
-            event.setCanceled(true);
-        }
+        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return false;
+        return RetroChatOverlay.getInstance().mouseReleased(event.getMouseX(), event.getMouseY(), event.getButton());
     }
 
     @SubscribeEvent
-    public void onScreenMouseDrag(ScreenEvent.MouseDragged.Pre event) {
-        if (!RetroChatConfig.getInstance().modEnabled) return;
+    public boolean onScreenMouseDrag(ScreenEvent.MouseDragged.Pre event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return false;
         Minecraft client = Minecraft.getInstance();
-        if (client.level == null) return;
+        if (client.level == null) return false;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
-        if (RetroChatOverlay.getInstance().mouseDragged(event.getMouseX(), event.getMouseY(), event.getMouseButton(), event.getDragX(), event.getDragY())) {
-            event.setCanceled(true);
-        }
+        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return false;
+        return RetroChatOverlay.getInstance().mouseDragged(event.getMouseX(), event.getMouseY(), event.getMouseButton(), event.getDragX(), event.getDragY());
     }
 
     @SubscribeEvent
-    public void onScreenMouseScroll(ScreenEvent.MouseScrolled.Pre event) {
-        if (!RetroChatConfig.getInstance().modEnabled) return;
+    public boolean onScreenMouseScroll(ScreenEvent.MouseScrolled.Pre event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return false;
         Minecraft client = Minecraft.getInstance();
-        if (client.level == null) return;
+        if (client.level == null) return false;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
-        if (RetroChatOverlay.getInstance().mouseScrolled(event.getMouseX(), event.getMouseY(), event.getDeltaX(), event.getDeltaY())) {
-            event.setCanceled(true);
-        }
+        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return false;
+        return RetroChatOverlay.getInstance().mouseScrolled(event.getMouseX(), event.getMouseY(), event.getDeltaX(), event.getDeltaY());
     }
 
     @SubscribeEvent
-    public void onScreenKeyPress(ScreenEvent.KeyPressed.Pre event) {
-        if (!RetroChatConfig.getInstance().modEnabled) return;
+    public boolean onScreenKeyPress(ScreenEvent.KeyPressed.Pre event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return false;
         Minecraft client = Minecraft.getInstance();
-        if (client.level == null) return;
+        if (client.level == null) return false;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
-        if (RetroChatOverlay.getInstance().keyPressed(event.getKeyCode(), event.getScanCode(), event.getModifiers())) {
-            event.setCanceled(true);
-        }
+        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return false;
+        return RetroChatOverlay.getInstance().onKeyPressed(event.getInfo());
     }
 
     @SubscribeEvent
-    public void onScreenCharType(ScreenEvent.CharacterTyped.Pre event) {
-        if (!RetroChatConfig.getInstance().modEnabled) return;
+    public boolean onScreenCharType(ScreenEvent.CharacterTyped.Pre event) {
+        if (!RetroChatConfig.getInstance().modEnabled) return false;
         Minecraft client = Minecraft.getInstance();
-        if (client.level == null) return;
+        if (client.level == null) return false;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
-        if (RetroChatOverlay.getInstance().charTyped(event.getCodePoint(), event.getModifiers())) {
-            event.setCanceled(true);
-        }
+        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return false;
+        return RetroChatOverlay.getInstance().onCharTyped(event.getInfo());
     }
 }

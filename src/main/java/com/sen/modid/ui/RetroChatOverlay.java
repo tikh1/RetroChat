@@ -2,8 +2,12 @@ package com.sen.modid.ui;
 
 import com.sen.modid.config.RetroChatConfig;
 import com.sen.modid.manager.ConversationManager;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 
 import java.util.*;
 
@@ -64,7 +68,7 @@ public class RetroChatOverlay {
         }
     }
 
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null || client.options.hideGui || !RetroChatConfig.getInstance().modEnabled) return;
 
@@ -82,18 +86,53 @@ public class RetroChatOverlay {
         int scaledMouseX = (int) (mouseX / scale);
         int scaledMouseY = (int) (mouseY / scale);
 
-        context.pose().pushPose();
-        context.pose().scale(scale, scale, 1.0f);
+        context.pose().pushMatrix();
+        context.pose().scale(scale, scale);
 
         sidebarWidget.updatePosition(scaledWidth, scaledHeight);
         sidebarWidget.render(context, scaledMouseX, scaledMouseY, delta);
 
         layoutAndRenderWindows(context, scaledWidth, scaledHeight, scaledMouseX, scaledMouseY, delta);
 
-        context.pose().popPose();
+        context.pose().popMatrix();
     }
 
-    private void layoutAndRenderWindows(GuiGraphics context, int screenWidth, int screenHeight, int mouseX, int mouseY, float delta) {
+    public void renderHud(GuiGraphicsExtractor extractor, DeltaTracker deltaTracker) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.screen == null) {
+            render(extractor, -1000, -1000, deltaTracker.getGameTimeDeltaPartialTick(true));
+        }
+    }
+
+    public void renderOnScreen(GuiGraphicsExtractor extractor, int mouseX, int mouseY, float delta) {
+        render(extractor, mouseX, mouseY, delta);
+    }
+
+    public boolean onMouseClicked(MouseButtonEvent event) {
+        return mouseClicked(event.x(), event.y(), event.button());
+    }
+
+    public boolean onMouseReleased(MouseButtonEvent event) {
+        return mouseReleased(event.x(), event.y(), event.button());
+    }
+
+    public boolean onMouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
+        return mouseDragged(event.x(), event.y(), event.button(), deltaX, deltaY);
+    }
+
+    public boolean onMouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        return mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+    }
+
+    public boolean onKeyPressed(KeyEvent event) {
+        return keyPressed(event.key(), event.scancode(), event.modifiers());
+    }
+
+    public boolean onCharTyped(CharacterEvent event) {
+        return charTyped((char) event.codepoint(), 0);
+    }
+
+    private void layoutAndRenderWindows(GuiGraphicsExtractor context, int screenWidth, int screenHeight, int mouseX, int mouseY, float delta) {
         ConversationManager cm = ConversationManager.getInstance();
         Map<String, ConversationManager.WindowState> activeStates = cm.getActiveWindowStates();
 

@@ -78,7 +78,7 @@ public class ConversationManager {
     public String getLocalPlayerName() {
         Minecraft client = Minecraft.getInstance();
         if (client.player != null && client.player.getGameProfile() != null) {
-            String name = client.player.getGameProfile().getName();
+            String name = client.player.getGameProfile().name();
             if (name != null && !name.trim().isEmpty()) {
                 return name.trim().toLowerCase();
             }
@@ -373,6 +373,14 @@ public class ConversationManager {
                 listener.onConversationUpdated(conv);
             }
         }
+    }
+
+    public synchronized int getTotalUnreadCount() {
+        int total = 0;
+        for (Conversation conv : conversations.values()) {
+            total += conv.getUnreadCount();
+        }
+        return total;
     }
 
     public boolean isWindowPinned(String playerName) {

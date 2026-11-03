@@ -3,10 +3,10 @@ package com.sen.modid.ui;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.PlayerFaceRenderer;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.PlayerFaceExtractor;
 import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.world.entity.player.PlayerSkin;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
 
@@ -55,7 +55,7 @@ public class GuiUtils {
         }
     }
 
-    public static void drawBeveledBox(GuiGraphics context, int x, int y, int width, int height, int bgColor, int lightBorder, int darkBorder) {
+    public static void drawBeveledBox(GuiGraphicsExtractor context, int x, int y, int width, int height, int bgColor, int lightBorder, int darkBorder) {
         context.fill(x + 1, y + 1, x + width - 1, y + height - 1, bgColor);
         context.fill(x, y, x + width - 1, y + 1, lightBorder);
         context.fill(x, y, x + 1, y + height - 1, lightBorder);
@@ -63,7 +63,7 @@ public class GuiUtils {
         context.fill(x, y + height - 1, x + width, y + height, darkBorder);
     }
 
-    public static void drawWindowHeader(GuiGraphics context, int x, int y, int width, int height, boolean active) {
+    public static void drawWindowHeader(GuiGraphicsExtractor context, int x, int y, int width, int height, boolean active) {
         int headerBg = active ? HEADER_ACTIVE_BG : HEADER_INACTIVE_BG;
         int lightBorder = active ? HEADER_ACTIVE_LIGHT : HEADER_INACTIVE_LIGHT;
         int darkBorder = active ? HEADER_ACTIVE_DARK : HEADER_INACTIVE_DARK;
@@ -75,7 +75,7 @@ public class GuiUtils {
         }
     }
 
-    public static void drawButtonBox(GuiGraphics context, int x, int y, int width, int height, boolean hovered) {
+    public static void drawButtonBox(GuiGraphicsExtractor context, int x, int y, int width, int height, boolean hovered) {
         int bg = hovered ? 0xFF2A5738 : 0xFF183321;
         int topBorder = hovered ? 0xFF438A58 : 0xFF285437;
         int bottomBorder = hovered ? 0xFF0F2417 : 0xFF0D1D13;
@@ -87,16 +87,16 @@ public class GuiUtils {
         }
     }
 
-    public static void drawMiniButton(GuiGraphics context, Font font, String text, int x, int y, int width, int height, boolean hovered) {
+    public static void drawMiniButton(GuiGraphicsExtractor context, Font font, String text, int x, int y, int width, int height, boolean hovered) {
         drawButtonBox(context, x, y, width, height, hovered);
         int textWidth = font.width(text);
         int textX = x + (width - textWidth) / 2;
         int textY = y + (height - 8) / 2;
         int textColor = hovered ? ORANGE_ACCENT_HOVER : 0xFFB8D5C0;
-        context.drawString(font, text, textX, textY, textColor, false);
+        context.text(font, text, textX, textY, textColor, false);
     }
 
-    public static void drawPinButton(GuiGraphics context, int x, int y, int width, int height, boolean pinned, boolean hovered) {
+    public static void drawPinButton(GuiGraphicsExtractor context, int x, int y, int width, int height, boolean pinned, boolean hovered) {
         if (pinned) {
             int bg = hovered ? 0xFF4A3018 : 0xFF352010;
             int topBorder = hovered ? 0xFF7A4A25 : 0xFF5C3518;
@@ -110,17 +110,18 @@ public class GuiUtils {
         int cx = x + width / 2;
         int cy = y + height / 2;
 
-        int pinColor = pinned ? (hovered ? ORANGE_ACCENT_HOVER : ORANGE_ACCENT) : (hovered ? 0xFFFFFFFF : 0xFFB8D5C0);
-        int needleColor = pinned ? 0xFFE2E8F0 : 0xFF78909C;
+        int headColor = pinned ? (hovered ? 0xFFFFAA44 : 0xFFE07A22) : (hovered ? 0xFF88DD99 : 0xFF559966);
+        int pinColor  = pinned ? (hovered ? 0xFFFFFFFF : 0xFFDDEEDD) : (hovered ? 0xFFCCDDBB : 0xFF88AA88);
+        int tipColor  = pinned ? 0xFFFFCC66 : 0xFF557755;
 
-        context.fill(cx - 2, cy - 3, cx + 3, cy - 2, pinColor);
-        context.fill(cx - 1, cy - 2, cx + 2, cy - 1, pinColor);
-        context.fill(cx - 2, cy - 1, cx + 3, cy + 1, pinColor);
-        context.fill(cx - 1, cy + 1, cx + 2, cy + 2, pinColor);
-        context.fill(cx, cy + 2, cx + 1, cy + 4, needleColor);
+        context.fill(cx - 2, cy - 3, cx + 2, cy - 1, headColor);
+        context.fill(cx - 1, cy - 4, cx + 1, cy - 3, headColor);
+        context.fill(cx - 2, cy - 1, cx + 2, cy, pinColor);
+        context.fill(cx, cy, cx + 1, cy + 3, pinColor);
+        context.fill(cx - 1, cy + 3, cx, cy + 4, tipColor);
     }
 
-    public static void drawMinimizeButton(GuiGraphics context, int x, int y, int width, int height, boolean hovered) {
+    public static void drawMinimizeButton(GuiGraphicsExtractor context, int x, int y, int width, int height, boolean hovered) {
         drawButtonBox(context, x, y, width, height, hovered);
 
         int cx = x + width / 2;
@@ -130,7 +131,7 @@ public class GuiUtils {
         context.fill(cx - 3, cy + 2, cx + 3, cy + 4, color);
     }
 
-    public static void drawCloseButton(GuiGraphics context, int x, int y, int width, int height, boolean hovered) {
+    public static void drawCloseButton(GuiGraphicsExtractor context, int x, int y, int width, int height, boolean hovered) {
         drawButtonBox(context, x, y, width, height, hovered);
 
         int cx = x + width / 2;
@@ -146,13 +147,10 @@ public class GuiUtils {
         context.fill(cx, cy, cx + 1, cy + 1, color);
 
         context.fill(cx - 1, cy + 1, cx, cy + 2, color);
-        context.fill(cx, cy + 1, cx + 1, cy + 2, color);
-
-        context.fill(cx - 2, cy + 2, cx - 1, cy + 3, color);
-        context.fill(cx + 1, cy + 2, cx + 2, cy + 3, color);
+        context.fill(cx + 1, cy + 1, cx + 2, cy + 2, color);
     }
 
-    public static void drawSearchButton(GuiGraphics context, int x, int y, int width, int height, boolean active, boolean hovered) {
+    public static void drawSearchButton(GuiGraphicsExtractor context, int x, int y, int width, int height, boolean active, boolean hovered) {
         if (active) {
             int bg = hovered ? 0xFF4A3018 : 0xFF352010;
             int topBorder = hovered ? 0xFF7A4A25 : 0xFF5C3518;
@@ -175,7 +173,7 @@ public class GuiUtils {
         context.fill(cx + 2, cy + 2, cx + 3, cy + 3, color);
     }
 
-    public static void drawSettingsButton(GuiGraphics context, int x, int y, int width, int height, boolean hovered) {
+    public static void drawSettingsButton(GuiGraphicsExtractor context, int x, int y, int width, int height, boolean hovered) {
         drawButtonBox(context, x, y, width, height, hovered);
 
         int cx = x + width / 2;
@@ -192,7 +190,7 @@ public class GuiUtils {
         context.fill(cx, cy, cx + 1, cy + 1, holeBg);
     }
 
-    public static void drawChevronButton(GuiGraphics context, int x, int y, int width, int height, boolean pointLeft, boolean hovered) {
+    public static void drawChevronButton(GuiGraphicsExtractor context, int x, int y, int width, int height, boolean pointLeft, boolean hovered) {
         drawButtonBox(context, x, y, width, height, hovered);
 
         int cx = x + width / 2;
@@ -218,7 +216,7 @@ public class GuiUtils {
         }
     }
 
-    public static void drawBadge(GuiGraphics context, Font font, int x, int y, int count) {
+    public static void drawBadge(GuiGraphicsExtractor context, Font font, int x, int y, int count) {
         if (count <= 0) return;
         String text = count > 99 ? "99+" : String.valueOf(count);
         int textWidth = font.width(text);
@@ -226,19 +224,19 @@ public class GuiUtils {
         int badgeHeight = 10;
 
         context.fill(x, y, x + badgeWidth, y + badgeHeight, BADGE_BG);
-        context.renderOutline(x, y, badgeWidth, badgeHeight, BADGE_BORDER);
+        context.outline(x, y, badgeWidth, badgeHeight, BADGE_BORDER);
 
         int textX = x + (badgeWidth - textWidth) / 2;
         int textY = y + 1;
-        context.drawString(font, text, textX, textY, 0xFFFFFFFF, true);
+        context.text(font, text, textX, textY, 0xFFFFFFFF, true);
     }
 
-    public static void drawPlayerHead(GuiGraphics context, PlayerSkin skinTextures, int x, int y, int size) {
+    public static void drawPlayerHead(GuiGraphicsExtractor context, PlayerSkin skinTextures, int x, int y, int size) {
         if (skinTextures != null) {
-            PlayerFaceRenderer.draw(context, skinTextures, x, y, size);
+            PlayerFaceExtractor.extractRenderState(context, skinTextures, x, y, size);
         } else {
             context.fill(x, y, x + size, y + size, 0xFF355440);
-            context.renderOutline(x, y, size, size, 0xFF16291E);
+            context.outline(x, y, size, size, 0xFF16291E);
         }
     }
 
@@ -260,11 +258,13 @@ public class GuiUtils {
             return client.player.getSkin();
         }
         if (uuid != null && client.getSkinManager() != null) {
-            return client.getSkinManager().getInsecureSkin(new GameProfile(uuid, name != null ? name : ""));
+            GameProfile profile = new GameProfile(uuid, name != null ? name : "");
+            return client.getSkinManager().createLookup(profile, true).get();
         }
         if (name != null && client.getSkinManager() != null) {
             UUID offlineUuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8));
-            return client.getSkinManager().getInsecureSkin(new GameProfile(offlineUuid, name));
+            GameProfile profile = new GameProfile(offlineUuid, name);
+            return client.getSkinManager().createLookup(profile, true).get();
         }
         return null;
     }

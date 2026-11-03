@@ -1,16 +1,19 @@
 package com.sen.modid.ui;
 
 import com.sen.modid.config.RetroChatConfig;
-
 import com.sen.modid.lang.LanguageManager;
 import com.sen.modid.manager.ConversationManager;
 import com.sen.modid.model.Conversation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.world.entity.player.PlayerSkin;
 import net.minecraft.network.chat.Component;
 
 import java.util.*;
@@ -100,7 +103,7 @@ public class PlayerSidebarWidget {
         }
     }
 
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         Minecraft client = Minecraft.getInstance();
         Font font = client.font;
 
@@ -112,7 +115,7 @@ public class PlayerSidebarWidget {
         GuiUtils.drawBeveledBox(context, x, y, width, height, GuiUtils.WINDOW_BG, GuiUtils.WINDOW_BORDER_LIGHT, GuiUtils.WINDOW_BORDER_DARK);
         GuiUtils.drawWindowHeader(context, x + 1, y + 1, width - 2, HEADER_HEIGHT, true);
 
-        context.drawString(font, LanguageManager.get("sidebar.title"), x + 5, y + 5, 0xFFFFFFFF, true);
+        context.text(font, LanguageManager.get("sidebar.title"), x + 5, y + 5, 0xFFFFFFFF, true);
 
         int gearX = x + width - 30;
         int btnY = y + 3;
@@ -124,7 +127,7 @@ public class PlayerSidebarWidget {
         GuiUtils.drawChevronButton(context, collapseX, btnY, 12, 12, false, colHovered);
 
         if (searchField != null) {
-            searchField.render(context, mouseX, mouseY, delta);
+            searchField.extractWidgetRenderState(context, mouseX, mouseY, delta);
         }
 
         int listY = y + HEADER_HEIGHT + SEARCH_HEIGHT + 6;
@@ -132,7 +135,7 @@ public class PlayerSidebarWidget {
         renderPlayerList(context, font, x + 2, listY, width - 4, listHeight, mouseX, mouseY);
     }
 
-    private void renderCollapsedTab(GuiGraphics context, Font font, int mouseX, int mouseY) {
+    private void renderCollapsedTab(GuiGraphicsExtractor context, Font font, int mouseX, int mouseY) {
         boolean hovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
         int bg = hovered ? 0xFF2A5738 : 0xFF183321;
         int topBorder = hovered ? 0xFF438A58 : 0xFF285437;
@@ -144,124 +147,149 @@ public class PlayerSidebarWidget {
             context.fill(x, y, x + width, y + 1, GuiUtils.ORANGE_ACCENT);
         }
 
-        GuiUtils.drawChevronButton(context, x + 4, y + 7, 14, 14, true, hovered);
+        int chevronX = x + (width - 12) / 2;
+        int chevronY = y + 6;
+        GuiUtils.drawChevronButton(context, chevronX, chevronY, 12, 12, true, hovered);
 
-        int totalUnread = 0;
-        for (Conversation c : ConversationManager.getInstance().getConversationsMru()) {
-            totalUnread += c.getUnreadCount();
-        }
+        int totalUnread = ConversationManager.getInstance().getTotalUnreadCount();
         if (totalUnread > 0) {
-            GuiUtils.drawBadge(context, font, x - 4, y - 4, totalUnread);
+            GuiUtils.drawBadge(context, font, x + 2, y + 15, totalUnread);
         }
     }
 
-    private void renderPlayerList(GuiGraphics context, Font font, int listX, int listY, int listWidth, int listHeight, int mouseX, int mouseY) {
-        GuiUtils.drawBeveledBox(context, listX, listY, listWidth, listHeight, GuiUtils.INNER_BOX_BG, GuiUtils.INNER_BOX_LIGHT, GuiUtils.INNER_BOX_DARK);
+    private void renderPlayerList(GuiGraphicsExtractor context, Font font, int listX, int listY, int listWidth, int listHeight, int mouseX, int mouseY) {
+        context.fill(listX, listY, listX + listWidth, listY + listHeight, GuiUtils.INNER_BOX_BG);
+        context.fill(listX, listY, listX + listWidth, listY + 1, GuiUtils.INNER_BOX_LIGHT);
+        context.fill(listX, listY, listX + 1, listY + listHeight, GuiUtils.INNER_BOX_LIGHT);
+        context.fill(listX + listWidth - 1, listY, listX + listWidth, listY + listHeight, GuiUtils.INNER_BOX_DARK);
+        context.fill(listX, listY + listHeight - 1, listX + listWidth, listY + listHeight, GuiUtils.INNER_BOX_DARK);
 
         List<PlayerEntryData> entries = getSortedPlayerEntries();
-
         int totalHeight = entries.size() * ENTRY_HEIGHT;
-        maxScroll = Math.max(0, totalHeight - (listHeight - 4));
+        maxScroll = Math.max(0, totalHeight - listHeight);
         scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
 
+        context.enableScissor(listX + 1, listY + 1, listX + listWidth - 1, listY + listHeight - 1);
+
         int scrollbarWidth = 6;
-        int contentWidth = maxScroll > 0 ? (listWidth - scrollbarWidth - 4) : (listWidth - 2);
+        int contentWidth = maxScroll > 0 ? (listWidth - scrollbarWidth - 2) : listWidth;
 
-        context.enableScissor(listX + 1, listY + 1, listX + contentWidth, listY + listHeight - 1);
+        int currentY = listY + 1 - scrollOffset;
 
-        int currentY = listY + 2 - scrollOffset;
-        for (PlayerEntryData entry : entries) {
-            if (currentY + ENTRY_HEIGHT >= listY && currentY <= listY + listHeight) {
-                boolean itemHovered = mouseX >= listX + 1 && mouseX <= listX + contentWidth && mouseY >= currentY && mouseY <= currentY + ENTRY_HEIGHT;
+        for (int i = 0; i < entries.size(); i++) {
+            PlayerEntryData entry = entries.get(i);
+
+            if (currentY + ENTRY_HEIGHT > listY && currentY < listY + listHeight) {
+                boolean itemHovered = mouseX >= listX + 1 && mouseX <= listX + contentWidth &&
+                        mouseY >= currentY && mouseY <= currentY + ENTRY_HEIGHT &&
+                        mouseY >= listY && mouseY <= listY + listHeight;
+
                 if (itemHovered) {
-                    context.fill(listX + 1, currentY, listX + contentWidth, currentY + ENTRY_HEIGHT, 0x552D5A3C);
-                    context.fill(listX + 1, currentY, listX + 3, currentY + ENTRY_HEIGHT, GuiUtils.ORANGE_ACCENT);
+                    context.fill(listX + 1, currentY, listX + contentWidth, currentY + ENTRY_HEIGHT, 0x22FFFFFF);
                 }
-
-                GuiUtils.drawPlayerHead(context, entry.skinTextures, listX + 4, currentY + 4, 10);
 
                 int dotColor = entry.isOnline ? GuiUtils.ONLINE_DOT : GuiUtils.OFFLINE_DOT;
-                context.fill(listX + 12, currentY + 12, listX + 14, currentY + 14, dotColor);
+                int dotX = listX + 4;
+                int dotY = currentY + (ENTRY_HEIGHT - 4) / 2;
+                context.fill(dotX, dotY, dotX + 4, dotY + 4, dotColor);
 
-                int nameColor = entry.isOnline ? 0xFFFFFFFF : 0xFF8FA395;
-                int maxNameWidth = maxScroll > 0 ? (contentWidth - 40) : (listWidth - 45);
-                String trimmedName = font.plainSubstrByWidth(entry.playerName, Math.max(10, maxNameWidth));
-                context.drawString(font, trimmedName, listX + 18, currentY + 5, nameColor, true);
+                int headSize = 12;
+                int headX = dotX + 7;
+                int headY = currentY + (ENTRY_HEIGHT - headSize) / 2;
+                if (RetroChatConfig.getInstance().showPlayerHeads) {
+                    GuiUtils.drawPlayerHead(context, entry.skinTextures, headX, headY, headSize);
+                }
+
+                int textX = RetroChatConfig.getInstance().showPlayerHeads ? (headX + headSize + 4) : (dotX + 8);
+                int textY = currentY + (ENTRY_HEIGHT - 8) / 2;
+                int textColor = entry.isOnline ? 0xFFFFFFFF : 0xFF888888;
+
+                int maxTextWidth = contentWidth - (textX - listX) - (entry.unreadCount > 0 ? 18 : 4);
+                String displayName = entry.playerName;
+                if (font.width(displayName) > maxTextWidth) {
+                    displayName = font.plainSubstrByWidth(displayName, maxTextWidth - 6) + "..";
+                }
+
+                context.text(font, displayName, textX, textY, textColor, false);
 
                 if (entry.unreadCount > 0) {
-                    int badgeX = listX + contentWidth - 20;
-                    GuiUtils.drawBadge(context, font, badgeX, currentY + 4, entry.unreadCount);
+                    GuiUtils.drawBadge(context, font, listX + contentWidth - 16, currentY + 4, entry.unreadCount);
                 }
             }
+
             currentY += ENTRY_HEIGHT;
         }
 
         context.disableScissor();
 
         if (maxScroll > 0) {
-            int trackX = listX + listWidth - scrollbarWidth - 2;
-            int trackY = listY + 2;
-            int trackHeight = listHeight - 4;
+            int trackX = listX + listWidth - scrollbarWidth - 1;
+            int trackY = listY + 1;
+            int trackHeight = listHeight - 2;
+
+            context.fill(trackX, trackY, trackX + scrollbarWidth, trackY + trackHeight, 0x33000000);
+
             int thumbHeight = Math.max(14, (int) ((float) trackHeight / totalHeight * trackHeight));
             int thumbY = trackY + (int) ((float) scrollOffset / maxScroll * (trackHeight - thumbHeight));
 
-            context.fill(trackX, trackY, trackX + scrollbarWidth, trackY + trackHeight, 0x60000000);
-            context.renderOutline(trackX, trackY, scrollbarWidth, trackHeight, 0x25FFFFFF);
-
-            boolean hoveredThumb = mouseX >= trackX - 1 && mouseX <= trackX + scrollbarWidth + 1 && mouseY >= thumbY && mouseY <= thumbY + thumbHeight;
-            int thumbBg = (isDraggingScrollbar || hoveredThumb) ? GuiUtils.ORANGE_ACCENT : 0xFF2A5738;
-            int thumbLight = (isDraggingScrollbar || hoveredThumb) ? GuiUtils.ORANGE_ACCENT_HOVER : 0xFF438A58;
-            int thumbDark = (isDraggingScrollbar || hoveredThumb) ? GuiUtils.ORANGE_BORDER : 0xFF0F2417;
-
-            GuiUtils.drawBeveledBox(context, trackX, thumbY, scrollbarWidth, thumbHeight, thumbBg, thumbLight, thumbDark);
+            context.fill(trackX, thumbY, trackX + scrollbarWidth, thumbY + thumbHeight, 0x88FFFFFF);
         }
     }
 
     private List<PlayerEntryData> getSortedPlayerEntries() {
         Minecraft client = Minecraft.getInstance();
-        ConversationManager cm = ConversationManager.getInstance();
-        com.sen.modid.config.RetroChatConfig config = com.sen.modid.config.RetroChatConfig.getInstance();
+        List<PlayerEntryData> list = new ArrayList<>();
 
-        Map<String, PlayerEntryData> entryMap = new LinkedHashMap<>();
+        Set<String> processed = new HashSet<>();
 
-        String localPlayer = cm.getLocalPlayerName();
-
-        // recent conversations excluding blocked players
-        for (Conversation conv : cm.getConversationsMru()) {
-            String name = conv.getPlayerName();
-            if (name.equalsIgnoreCase(localPlayer)) continue;
-            if (client.player != null && name.equalsIgnoreCase(client.player.getName().getString())) continue;
-            if (config.isPlayerBlocked(name)) continue;
-            if (!filterQuery.isEmpty() && !name.toLowerCase().contains(filterQuery)) continue;
-
-            PlayerInfo ple = (client.getConnection() != null) ? client.getConnection().getPlayerInfo(name) : null;
-            boolean online = ple != null;
-            PlayerSkin skin = (ple != null && ple.getSkin() != null) ? ple.getSkin() : GuiUtils.getPlayerSkin(conv.getPlayerUuid(), name);
-
-            entryMap.put(name.toLowerCase(), new PlayerEntryData(name, conv.getPlayerUuid(), skin, online, conv.getUnreadCount(), conv.getLastMessageTimestamp()));
-        }
-
-        // remaining online players
         if (client.getConnection() != null) {
-            List<PlayerInfo> onlineList = new ArrayList<>(client.getConnection().getOnlinePlayers());
-            onlineList.sort(Comparator.comparing(a -> a.getProfile().getName().toLowerCase()));
-
-            for (PlayerInfo ple : onlineList) {
-                String name = ple.getProfile().getName();
-                if (name.equalsIgnoreCase(localPlayer)) continue;
+            for (PlayerInfo info : client.getConnection().getOnlinePlayers()) {
+                String name = info.getProfile().name();
                 if (client.player != null && name.equalsIgnoreCase(client.player.getName().getString())) {
-                    continue; // skip self
+                    continue;
                 }
-                if (config.isPlayerBlocked(name)) continue;
-                if (!filterQuery.isEmpty() && !name.toLowerCase().contains(filterQuery)) continue;
 
-                if (!entryMap.containsKey(name.toLowerCase())) {
-                    entryMap.put(name.toLowerCase(), new PlayerEntryData(name, ple.getProfile().getId(), ple.getSkin(), true, 0, 0));
+                if (!filterQuery.isEmpty() && !name.toLowerCase().contains(filterQuery)) {
+                    continue;
                 }
+
+                processed.add(name.toLowerCase());
+                Conversation conv = ConversationManager.getInstance().getConversation(name);
+                int unread = conv != null ? conv.getUnreadCount() : 0;
+                long lastMsg = conv != null ? conv.getLastMessageTimestamp() : 0;
+
+                list.add(new PlayerEntryData(name, info.getProfile().id(), info.getSkin(), true, unread, lastMsg));
             }
         }
 
-        return new ArrayList<>(entryMap.values());
+        for (Conversation conv : ConversationManager.getInstance().getConversationsMru()) {
+            String name = conv.getPlayerName();
+            if (processed.contains(name.toLowerCase())) {
+                continue;
+            }
+
+            if (!filterQuery.isEmpty() && !name.toLowerCase().contains(filterQuery)) {
+                continue;
+            }
+
+            PlayerSkin skin = GuiUtils.getPlayerSkin(conv.getPlayerUuid(), name);
+            list.add(new PlayerEntryData(name, conv.getPlayerUuid(), skin, false, conv.getUnreadCount(), conv.getLastMessageTimestamp()));
+        }
+
+        list.sort((a, b) -> {
+            if (a.unreadCount != b.unreadCount) {
+                return Integer.compare(b.unreadCount, a.unreadCount);
+            }
+            if (a.isOnline != b.isOnline) {
+                return Boolean.compare(b.isOnline, a.isOnline);
+            }
+            if (a.lastMessageTimestamp != b.lastMessageTimestamp) {
+                return Long.compare(b.lastMessageTimestamp, a.lastMessageTimestamp);
+            }
+            return a.playerName.compareToIgnoreCase(b.playerName);
+        });
+
+        return list;
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -275,37 +303,30 @@ public class PlayerSidebarWidget {
         }
 
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
-            if (mouseY >= y && mouseY <= y + HEADER_HEIGHT) {
-                int gearX = x + width - 30;
-                int collapseX = x + width - 15;
-
-                if (mouseX >= gearX && mouseX <= gearX + 12) {
-                    GuiUtils.playClickSound();
-                    if (onOpenConfig != null) {
-                        onOpenConfig.run();
-                    }
-                    return true;
+            int gearX = x + width - 30;
+            int btnY = y + 3;
+            if (mouseX >= gearX && mouseX <= gearX + 12 && mouseY >= btnY && mouseY <= btnY + 12) {
+                GuiUtils.playClickSound();
+                if (onOpenConfig != null) {
+                    onOpenConfig.run();
                 }
+                return true;
+            }
 
-                if (mouseX >= collapseX && mouseX <= collapseX + 12) {
-                    GuiUtils.playClickSound();
-                    setCollapsed(true);
-                    return true;
-                }
+            int collapseX = x + width - 15;
+            if (mouseX >= collapseX && mouseX <= collapseX + 12 && mouseY >= btnY && mouseY <= btnY + 12) {
+                GuiUtils.playClickSound();
+                setCollapsed(true);
+                return true;
             }
 
             if (searchField != null) {
-                boolean hit = mouseX >= searchField.getX() && mouseX <= searchField.getX() + searchField.getWidth()
-                    && mouseY >= searchField.getY() && mouseY <= searchField.getY() + searchField.getHeight();
-                searchField.setFocused(hit);
-                if (hit) {
-                    searchField.mouseClicked(mouseX, mouseY, button);
-                }
+                searchField.mouseClicked(new MouseButtonEvent(mouseX, mouseY, new MouseButtonInfo(button, 0)), false);
             }
 
             int listY = y + HEADER_HEIGHT + SEARCH_HEIGHT + 6;
             int listHeight = height - (HEADER_HEIGHT + SEARCH_HEIGHT + 10);
-            if (mouseY >= listY && mouseY <= listY + listHeight) {
+            if (mouseX >= x + 2 && mouseX <= x + width - 2 && mouseY >= listY && mouseY <= listY + listHeight) {
                 int scrollbarWidth = 6;
                 int trackX = x + 2 + (width - 4) - scrollbarWidth - 2;
                 if (maxScroll > 0 && mouseX >= trackX - 2 && mouseX <= trackX + scrollbarWidth + 2) {
@@ -386,14 +407,14 @@ public class PlayerSidebarWidget {
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (!collapsed && searchField != null && searchField.isFocused()) {
-            return searchField.keyPressed(keyCode, scanCode, modifiers);
+            return searchField.keyPressed(new KeyEvent(keyCode, scanCode, modifiers));
         }
         return false;
     }
 
     public boolean charTyped(char chr, int modifiers) {
         if (!collapsed && searchField != null && searchField.isFocused()) {
-            return searchField.charTyped(chr, modifiers);
+            return searchField.charTyped(new CharacterEvent(chr));
         }
         return false;
     }
@@ -420,4 +441,3 @@ public class PlayerSidebarWidget {
         }
     }
 }
-
