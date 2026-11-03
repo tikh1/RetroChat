@@ -68,7 +68,7 @@ public class RetroChatClientEventHandler {
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent.Post event) {
         Minecraft client = Minecraft.getInstance();
-        Screen currentScreen = client.screen;
+        Screen currentScreen = client.gui.screen();
         if (lastScreen != null && currentScreen == null) {
             ConversationManager.getInstance().minimizeUnpinnedWindows();
             RetroChatOverlay.getInstance().unfocusAll();
@@ -79,10 +79,10 @@ public class RetroChatClientEventHandler {
         while (key != null && key.consumeClick()) {
             if (!RetroChatConfig.getInstance().modEnabled) continue;
             if (client.level != null) {
-                if (client.screen == null) {
-                    client.setScreen(new RetroChatOverlayScreen());
-                } else if (client.screen instanceof RetroChatOverlayScreen) {
-                    client.setScreen(null);
+                if (client.gui.screen() == null) {
+                    client.gui.setScreen(new RetroChatOverlayScreen());
+                } else if (client.gui.screen() instanceof RetroChatOverlayScreen) {
+                    client.gui.setScreen(null);
                 }
             }
         }
@@ -177,7 +177,7 @@ public class RetroChatClientEventHandler {
     public void onCustomizeChat(CustomizeGuiOverlayEvent.Chat event) {
         if (!RetroChatConfig.getInstance().modEnabled) return;
         Minecraft client = Minecraft.getInstance();
-        if (client.level != null && client.screen == null) {
+        if (client.level != null && client.gui.screen() == null) {
             RetroChatOverlay.getInstance().render(event.getGuiGraphics(), -1000, -1000, event.getPartialTick());
         }
     }

@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[64,)"
+loaderVersion="[65,)"
 license="MIT"
 
 [[mods]]
@@ -18,13 +18,13 @@ GitHub: tikh1'''
 [[dependencies.retrochat]]
     modId="forge"
     mandatory=true
-    versionRange="[64.0.0,)"
+    versionRange="[65.0.0,)"
     ordering="NONE"
     side="CLIENT"
 
 [[dependencies.retrochat]]
     modId="minecraft"
     mandatory=true
-    versionRange="[26.1,)"
+    versionRange="[26.2,)"
     ordering="NONE"
     side="CLIENT"
