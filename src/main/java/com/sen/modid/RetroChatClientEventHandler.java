@@ -3,9 +3,8 @@ package com.sen.modid;
 import com.sen.modid.config.RetroChatConfig;
 import com.sen.modid.manager.ConversationManager;
 import com.sen.modid.model.DirectMessage;
-import com.sen.modid.ui.RetroChatConfigScreen;
 import com.sen.modid.ui.RetroChatOverlay;
-import com.sen.modid.ui.RetroChatOverlayScreen;
+import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.ChatType;
@@ -162,7 +161,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
-        if (!(screen instanceof RetroChatConfigScreen) && !(screen instanceof RetroChatOverlayScreen)) {
+        if (screen instanceof ChatScreen) {
             RetroChatOverlay.getInstance().render(event.getGuiGraphics(), event.getMouseX(), event.getMouseY(), event.getPartialTick());
         }
     }
@@ -173,7 +172,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
+        if (!(screen instanceof ChatScreen)) return;
         if (RetroChatOverlay.getInstance().mouseClicked(event.getMouseX(), event.getMouseY(), event.getButton())) {
             event.setCanceled(true);
         }
@@ -185,7 +184,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
+        if (!(screen instanceof ChatScreen)) return;
         if (RetroChatOverlay.getInstance().mouseReleased(event.getMouseX(), event.getMouseY(), event.getButton())) {
             event.setCanceled(true);
         }
@@ -197,7 +196,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
+        if (!(screen instanceof ChatScreen)) return;
         if (RetroChatOverlay.getInstance().mouseDragged(event.getMouseX(), event.getMouseY(), event.getMouseButton(), event.getDragX(), event.getDragY())) {
             event.setCanceled(true);
         }
@@ -209,7 +208,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
+        if (!(screen instanceof ChatScreen)) return;
         if (RetroChatOverlay.getInstance().mouseScrolled(event.getMouseX(), event.getMouseY(), event.getScrollDeltaX(), event.getScrollDeltaY())) {
             event.setCanceled(true);
         }
@@ -221,7 +220,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
+        if (!(screen instanceof ChatScreen)) return;
         if (RetroChatOverlay.getInstance().keyPressed(event.getKeyCode(), event.getScanCode(), event.getModifiers())) {
             event.setCanceled(true);
         }
@@ -233,7 +232,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
+        if (!(screen instanceof ChatScreen)) return;
         if (RetroChatOverlay.getInstance().charTyped(event.getCodePoint(), event.getModifiers())) {
             event.setCanceled(true);
         }
