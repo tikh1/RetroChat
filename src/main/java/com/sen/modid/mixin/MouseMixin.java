@@ -1,10 +1,9 @@
 package com.sen.modid.mixin;
 
-import com.sen.modid.ui.RetroChatConfigScreen;
 import com.sen.modid.ui.RetroChatOverlay;
-import com.sen.modid.ui.RetroChatOverlayScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
+import net.minecraft.client.gui.screen.ChatScreen;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,8 +21,7 @@ public class MouseMixin {
     @Inject(method = "onMouseButton", at = @At("HEAD"), cancellable = true)
     private void onScreenMouseButton(long window, int button, int action, int mods, CallbackInfo ci) {
         if (client.world == null) return;
-        if (client.currentScreen == null) return;
-        if (client.currentScreen instanceof RetroChatConfigScreen || client.currentScreen instanceof RetroChatOverlayScreen) return;
+        if (!(client.currentScreen instanceof ChatScreen)) return;
 
         double mouseX = this.x * (double)client.getWindow().getScaledWidth() / (double)client.getWindow().getWidth();
         double mouseY = this.y * (double)client.getWindow().getScaledHeight() / (double)client.getWindow().getHeight();
@@ -42,8 +40,7 @@ public class MouseMixin {
     @Inject(method = "onMouseScroll", at = @At("HEAD"), cancellable = true)
     private void onScreenMouseScroll(long window, double horizontal, double vertical, CallbackInfo ci) {
         if (client.world == null) return;
-        if (client.currentScreen == null) return;
-        if (client.currentScreen instanceof RetroChatConfigScreen || client.currentScreen instanceof RetroChatOverlayScreen) return;
+        if (!(client.currentScreen instanceof ChatScreen)) return;
 
         double mouseX = this.x * (double)client.getWindow().getScaledWidth() / (double)client.getWindow().getWidth();
         double mouseY = this.y * (double)client.getWindow().getScaledHeight() / (double)client.getWindow().getHeight();
