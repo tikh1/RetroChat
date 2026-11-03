@@ -23,15 +23,16 @@ public class RetroChatClientEventHandler {
 
     private static final Pattern[] INCOMING_PATTERNS = new Pattern[] {
         Pattern.compile("^(\\w+) whispers to you: (.*)$", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("^(\\w+) sana fısıldıyor: (.*)$", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("^\\[(\\w+) -> (?:me|you|bana)\\]:? (.*)$", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("^(\\w+) -> (?:me|you|bana): (.*)$", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("^(\\w+) (?:size|sana) fısıldıyor: (.*)$", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("^\\[(\\w+) -> (?:me|you|bana|size)\\]:? (.*)$", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("^(\\w+) -> (?:me|you|bana|size): (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^\\[from (\\w+)\\]:? (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^(\\w+) whispers: (.*)$", Pattern.CASE_INSENSITIVE)
     };
 
     private static final Pattern[] OUTGOING_PATTERNS = new Pattern[] {
         Pattern.compile("^You whisper to (\\w+): (.*)$", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("^(\\w+) kişisine fısıldadınız: (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^(?:Sen|Siz) (\\w+) kişisine fısıldıyorsunuz: (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^\\[(?:me|you|sen|ben) -> (\\w+)\\]:? (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^(?:me|you|sen|ben) -> (\\w+): (.*)$", Pattern.CASE_INSENSITIVE),
@@ -114,6 +115,47 @@ public class RetroChatClientEventHandler {
 
         if (event instanceof ClientChatReceivedEvent.System sys && sys.isOverlay()) {
             return;
+        }
+
+        if (event.getMessage().getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents tc) {
+            String key = tc.getKey();
+            if ("commands.message.display.incoming".equals(key)) {
+                Object[] args = tc.getArgs();
+                if (args.length >= 2) {
+                    String sender = (args[0] instanceof Component c) ? c.getString() : args[0].toString();
+                    String content = (args[1] instanceof Component c) ? c.getString() : args[1].toString();
+                    boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(sender);
+                    if (isBlocked) {
+                        event.setCanceled(true);
+                    }
+                    long timestamp = Instant.now().toEpochMilli();
+                    DirectMessage dm = new DirectMessage(null, sender, null, "me", content, timestamp, true, isBlocked, isBlocked);
+                    ConversationManager.getInstance().addMessage(sender, null, dm);
+                    if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
+                        event.setCanceled(true);
+                    }
+                    return;
+                }
+            } else if ("commands.message.display.outgoing".equals(key)) {
+                Object[] args = tc.getArgs();
+                if (args.length >= 2) {
+                    String target = (args[0] instanceof Component c) ? c.getString() : args[0].toString();
+                    String content = (args[1] instanceof Component c) ? c.getString() : args[1].toString();
+                    boolean isBlocked = RetroChatConfig.getInstance().isPlayerBlocked(target);
+                    if (isBlocked) {
+                        event.setCanceled(true);
+                    }
+                    long timestamp = Instant.now().toEpochMilli();
+                    if (!ConversationManager.getInstance().consumePendingOutgoing(target, content)) {
+                        DirectMessage dm = new DirectMessage(null, "me", null, target, content, timestamp, false, true, false);
+                        ConversationManager.getInstance().addMessage(target, null, dm);
+                    }
+                    if (RetroChatConfig.getInstance().hideDmsInVanillaChat) {
+                        event.setCanceled(true);
+                    }
+                    return;
+                }
+            }
         }
 
         String raw = event.getMessage().getString();
