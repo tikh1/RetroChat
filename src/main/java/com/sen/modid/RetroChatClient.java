@@ -19,6 +19,7 @@ import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
@@ -103,7 +104,7 @@ public class RetroChatClient implements ClientModInitializer {
 
         // Register Screen rendering and input events for non-RetroChat screens
         ScreenEvents.BEFORE_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-            if (screen instanceof RetroChatOverlayScreen || screen instanceof RetroChatConfigScreen) {
+            if (!(screen instanceof ChatScreen)) {
                 return;
             }
 
