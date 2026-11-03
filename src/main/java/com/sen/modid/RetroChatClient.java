@@ -48,7 +48,7 @@ public class RetroChatClient {
         NeoForge.EVENT_BUS.addListener(this::onClientTick);
         NeoForge.EVENT_BUS.register(new RetroChatClientEventHandler());
 
-        LOGGER.info("[RetroChat] Initialized successfully on NeoForge 26.1!");
+        LOGGER.info("[RetroChat] Initialized successfully on NeoForge 26.2!");
     }
 
     private void registerKeyMappings(RegisterKeyMappingsEvent event) {
@@ -63,7 +63,7 @@ public class RetroChatClient {
 
     private void onClientTick(ClientTickEvent.Post event) {
         Minecraft client = Minecraft.getInstance();
-        Screen currentScreen = client.screen;
+        Screen currentScreen = client.gui.screen();
         if (lastScreen != null && currentScreen == null) {
             ConversationManager.getInstance().minimizeUnpinnedWindows();
             RetroChatOverlay.getInstance().unfocusAll();
@@ -73,10 +73,10 @@ public class RetroChatClient {
         while (toggleChatKey != null && toggleChatKey.consumeClick()) {
             if (!RetroChatConfig.getInstance().modEnabled) continue;
             if (client.level != null) {
-                if (client.screen == null) {
-                    client.setScreen(new RetroChatOverlayScreen());
-                } else if (client.screen instanceof RetroChatOverlayScreen) {
-                    client.setScreen(null);
+                if (client.gui.screen() == null) {
+                    client.gui.setScreen(new RetroChatOverlayScreen());
+                } else if (client.gui.screen() instanceof RetroChatOverlayScreen) {
+                    client.gui.setScreen(null);
                 }
             }
         }

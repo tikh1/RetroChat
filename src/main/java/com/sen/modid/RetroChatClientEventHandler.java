@@ -22,7 +22,7 @@ public class RetroChatClientEventHandler {
 
     private static final Pattern[] INCOMING_PATTERNS = new Pattern[] {
         Pattern.compile("^(\\w+) whispers to you: (.*)$", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("^(\\w+) sana fısıldıyor: (.*)$", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("^(\\w+) sana fÄ±sÄ±ldÄ±yor: (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^\\[(\\w+) -> (?:me|you|bana)\\]:? (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^(\\w+) -> (?:me|you|bana): (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^\\[from (\\w+)\\]:? (.*)$", Pattern.CASE_INSENSITIVE),
@@ -31,7 +31,7 @@ public class RetroChatClientEventHandler {
 
     private static final Pattern[] OUTGOING_PATTERNS = new Pattern[] {
         Pattern.compile("^You whisper to (\\w+): (.*)$", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("^(?:Sen|Siz) (\\w+) kişisine fısıldıyorsunuz: (.*)$", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("^(?:Sen|Siz) (\\w+) kiÅŸisine fÄ±sÄ±ldÄ±yorsunuz: (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^\\[(?:me|you|sen|ben) -> (\\w+)\\]:? (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^(?:me|you|sen|ben) -> (\\w+): (.*)$", Pattern.CASE_INSENSITIVE),
         Pattern.compile("^\\[to (\\w+)\\]:? (.*)$", Pattern.CASE_INSENSITIVE)
@@ -151,7 +151,7 @@ public class RetroChatClientEventHandler {
     public void onRenderGui(RenderGuiEvent.Post event) {
         if (!RetroChatConfig.getInstance().modEnabled) return;
         Minecraft client = Minecraft.getInstance();
-        if (client.level != null && client.screen == null) {
+        if (client.level != null && client.gui.screen() == null) {
             RetroChatOverlay.getInstance().render(event.getGuiGraphics(), -1000, -1000, event.getPartialTick().getGameTimeDeltaPartialTick(true));
         }
     }

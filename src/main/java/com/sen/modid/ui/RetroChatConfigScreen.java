@@ -187,7 +187,7 @@ public class RetroChatConfigScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal(LanguageManager.get("config.done")), b -> {
             config.save();
             if (minecraft != null) {
-                minecraft.setScreen(parent);
+                minecraft.gui.setScreen(parent);
             }
         }).bounds(centerX - 75, height - 24, 150, 18).build());
     }
@@ -211,7 +211,7 @@ public class RetroChatConfigScreen extends Screen {
             int previewY = Math.max(86, (height - previewHeight) / 2 + 15);
             int previewX = (width - previewWidth) / 2;
 
-            String dimText = "âœ¦ " + LanguageManager.get("config.live_preview") + ": " + previewWidth + " x " + previewHeight + " px âœ¦";
+            String dimText = "Ã¢Å“Â¦ " + LanguageManager.get("config.live_preview") + ": " + previewWidth + " x " + previewHeight + " px Ã¢Å“Â¦";
             context.text(font, dimText, (width - font.width(dimText)) / 2, previewY - 14, GuiUtils.ORANGE_ACCENT_HOVER, true);
 
             renderLivePreviewWindow(context, previewX, previewY, previewWidth, previewHeight);
@@ -234,7 +234,7 @@ public class RetroChatConfigScreen extends Screen {
 
             renderPlayerManagementList(context, boxX, listY, boxWidth, listHeight, mouseX, mouseY);
 
-            String hintText = "ğŸ’¡ " + LanguageManager.get("config.keybind_hint");
+            String hintText = "ÄŸÅ¸â€™Â¡ " + LanguageManager.get("config.keybind_hint");
             String trimmedHint = font.plainSubstrByWidth(hintText, Math.max(10, width - 20));
             context.text(font, trimmedHint, (width - font.width(trimmedHint)) / 2, height - 36, GuiUtils.ORANGE_ACCENT_HOVER, true);
         }
