@@ -8,9 +8,13 @@ import com.sen.modid.model.Conversation;
 import com.sen.modid.model.DirectMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.world.entity.player.PlayerSkin;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.FormattedCharSequence;
@@ -121,13 +125,13 @@ public class ChatWindowWidget {
         if (client.player != null) {
             return client.player.getSkin();
         }
-        if (client.getSkinManager() != null && client.getUser() != null) {
-            return client.getSkinManager().getInsecureSkin(client.getGameProfile());
+        if (client.getSkinManager() != null && client.getGameProfile() != null) {
+            return client.getSkinManager().createLookup(client.getGameProfile(), true).get();
         }
         return null;
     }
 
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         ConversationManager cm = ConversationManager.getInstance();
         ConversationManager.WindowState state = cm.getWindowState(playerName);
         if (state == ConversationManager.WindowState.CLOSED) return;
@@ -155,7 +159,7 @@ public class ChatWindowWidget {
         String displayName = isBlocked ? playerName + " [X]" : playerName;
         int nameColor = isBlocked ? 0xFFFF7777 : 0xFFFFFFFF;
         String trimmedName = font.plainSubstrByWidth(displayName, width - 78);
-        context.drawString(font, trimmedName, x + 18, y + 5, nameColor, true);
+        context.text(font, trimmedName, x + 18, y + 5, nameColor, true);
 
         int btnY = y + 3;
         int closeBtnX = x + width - 15;
@@ -181,7 +185,7 @@ public class ChatWindowWidget {
         int msgAreaHeight = height - HEADER_HEIGHT - 37 - searchBarOffset;
 
         if (searchOpen && searchField != null) {
-            searchField.render(context, mouseX, mouseY, delta);
+            searchField.extractWidgetRenderState(context, mouseX, mouseY, delta);
             int clearBtnX = x + width - 15;
             int clearBtnY = y + HEADER_HEIGHT + 4;
             boolean clearHovered = mouseX >= clearBtnX && mouseX <= clearBtnX + 11 && mouseY >= clearBtnY && mouseY <= clearBtnY + 11;
@@ -201,7 +205,7 @@ public class ChatWindowWidget {
                 inputField.setEditable(true);
                 inputField.setHint(Component.literal(LanguageManager.get("chat.type_message")));
             }
-            inputField.render(context, mouseX, mouseY, delta);
+            inputField.extractWidgetRenderState(context, mouseX, mouseY, delta);
         }
 
         int coordBtnX = x + 4;
@@ -213,7 +217,7 @@ public class ChatWindowWidget {
         GuiUtils.drawButtonBox(context, coordBtnX, coordBtnY, coordBtnW, coordBtnH, coordHovered);
         int coordTextW = font.width("XYZ");
         int coordColor = coordHovered ? GuiUtils.ORANGE_ACCENT_HOVER : 0xFFB8D5C0;
-        context.drawString(font, "XYZ", coordBtnX + (coordBtnW - coordTextW) / 2, coordBtnY + 2, coordColor, false);
+        context.text(font, "XYZ", coordBtnX + (coordBtnW - coordTextW) / 2, coordBtnY + 2, coordColor, false);
 
         int emojiBtnX = x + width - 18;
         int emojiBtnY = y + height - 14;
@@ -227,18 +231,18 @@ public class ChatWindowWidget {
         int counterColor = currentLength >= MAX_CHARACTERS ? 0xFFEF4444 : (currentLength >= 230 ? GuiUtils.ORANGE_ACCENT : 0xFF7D9C86);
 
         int counterX = emojiBtnX - counterWidth - 5;
-        context.drawString(font, counterText, counterX, counterY, counterColor, false);
+        context.text(font, counterText, counterX, counterY, counterColor, false);
 
         boolean emojiHovered = mouseX >= emojiBtnX && mouseX <= emojiBtnX + emojiBtnW && mouseY >= emojiBtnY && mouseY <= emojiBtnY + emojiBtnH;
         GuiUtils.drawButtonBox(context, emojiBtnX, emojiBtnY, emojiBtnW, emojiBtnH, emojiPickerOpen || emojiHovered);
         int smileyW = font.width(":)");
         int smileyColor = (emojiPickerOpen || emojiHovered) ? GuiUtils.ORANGE_ACCENT_HOVER : 0xFFB8D5C0;
-        context.drawString(font, ":)", emojiBtnX + (emojiBtnW - smileyW) / 2, emojiBtnY + 2, smileyColor, false);
+        context.text(font, ":)", emojiBtnX + (emojiBtnW - smileyW) / 2, emojiBtnY + 2, smileyColor, false);
 
         if (emojiPickerOpen) {
-            context.flush();
-            context.pose().pushPose();
-            context.pose().translate(0.0F, 0.0F, 200.0F);
+            context.nextStratum();
+            context.pose().pushMatrix();
+            
 
             int panelW = Math.min(width - 8, 175);
             int panelH = Math.min(height - HEADER_HEIGHT - 36, 125);
@@ -246,18 +250,18 @@ public class ChatWindowWidget {
             int panelY = y + height - 33 - panelH;
             emojiPicker.render(context, font, mouseX, mouseY, panelX, panelY, panelW, panelH);
 
-            context.flush();
-            context.pose().popPose();
+            context.nextStratum();
+            context.pose().popMatrix();
         }
 
         if (coordHovered) {
-            context.renderTooltip(font, Component.literal(LanguageManager.get("chat.insert_coords")), mouseX, mouseY);
+            context.setTooltipForNextFrame(Component.literal(LanguageManager.get("chat.insert_coords")), mouseX, mouseY);
         } else if (searchHovered) {
-            context.renderTooltip(font, Component.literal(LanguageManager.get("chat.search_toggle") + " (Ctrl+F)"), mouseX, mouseY);
+            context.setTooltipForNextFrame(Component.literal(LanguageManager.get("chat.search_toggle") + " (Ctrl+F)"), mouseX, mouseY);
         }
     }
 
-    public void renderAsTab(GuiGraphics context, int mouseX, int mouseY, float delta, int actualTabWidth) {
+    public void renderAsTab(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta, int actualTabWidth) {
         this.currentTabWidth = actualTabWidth;
         this.isRenderedAsTab = true;
         Minecraft client = Minecraft.getInstance();
@@ -266,7 +270,7 @@ public class ChatWindowWidget {
         renderMinimizedTab(context, font, skin, mouseX, mouseY, actualTabWidth);
     }
 
-    private void renderMinimizedTab(GuiGraphics context, Font font, PlayerSkin skin, int mouseX, int mouseY, int tabWidth) {
+    private void renderMinimizedTab(GuiGraphicsExtractor context, Font font, PlayerSkin skin, int mouseX, int mouseY, int tabWidth) {
         this.currentTabWidth = tabWidth;
         int tabHeight = HEADER_HEIGHT;
 
@@ -284,7 +288,7 @@ public class ChatWindowWidget {
 
             int nameWidth = tabWidth - (unread > 0 ? 50 : 34);
             String trimmedName = font.plainSubstrByWidth(playerName, Math.max(10, nameWidth));
-            context.drawString(font, trimmedName, x + 18, y + 5, 0xFFFFFFFF, true);
+            context.text(font, trimmedName, x + 18, y + 5, 0xFFFFFFFF, true);
 
             if (unread > 0) {
                 GuiUtils.drawBadge(context, font, x + tabWidth - 36, y + 4, unread);
@@ -301,7 +305,7 @@ public class ChatWindowWidget {
                 GuiUtils.drawBadge(context, font, x + 16, y + 4, unread);
             } else {
                 String trimmedName = font.plainSubstrByWidth(playerName, tabWidth - 30);
-                context.drawString(font, trimmedName, x + 16, y + 5, 0xFFFFFFFF, true);
+                context.text(font, trimmedName, x + 16, y + 5, 0xFFFFFFFF, true);
             }
 
             int closeBtnX = x + tabWidth - 14;
@@ -317,12 +321,12 @@ public class ChatWindowWidget {
             }
 
             if (hovered) {
-                context.renderTooltip(font, Component.literal(playerName + (unread > 0 ? " (" + unread + ")" : "")), mouseX, mouseY);
+                context.setTooltipForNextFrame(Component.literal(playerName + (unread > 0 ? " (" + unread + ")" : "")), mouseX, mouseY);
             }
         }
     }
 
-    private void renderMessages(GuiGraphics context, Font font, int mouseX, int mouseY, int areaX, int areaY, int areaWidth, int areaHeight) {
+    private void renderMessages(GuiGraphicsExtractor context, Font font, int mouseX, int mouseY, int areaX, int areaY, int areaWidth, int areaHeight) {
         Conversation conv = ConversationManager.getInstance().getConversation(playerName);
         if (conv == null) return;
 
@@ -338,7 +342,7 @@ public class ChatWindowWidget {
 
         if (messagesToRender.isEmpty()) {
             String emptyText = searchOpen ? LanguageManager.get("chat.no_search_results") : LanguageManager.get("chat.no_messages");
-            context.drawString(font, emptyText, areaX + 4, areaY + 6, 0xFF5D7866, false);
+            context.text(font, emptyText, areaX + 4, areaY + 6, 0xFF5D7866, false);
             return;
         }
 
@@ -404,7 +408,7 @@ public class ChatWindowWidget {
                 if (line.headSkin != null) {
                     GuiUtils.drawPlayerHead(context, line.headSkin, areaX + 4 + line.headXOffset, currentY, 8);
                 }
-                context.drawString(font, line.text, areaX + 4, currentY, 0xFFFFFFFF, true);
+                context.text(font, line.text, areaX + 4, currentY, 0xFFFFFFFF, true);
 
                 if (line.wasBlocked && mouseX >= areaX && mouseX <= areaX + areaWidth && mouseY >= currentY && mouseY < currentY + 10) {
                     hoveredBlockedTooltip = LanguageManager.get("chat.sent_while_blocked");
@@ -416,7 +420,7 @@ public class ChatWindowWidget {
         context.disableScissor();
 
         if (hoveredBlockedTooltip != null) {
-            context.renderTooltip(font, Component.literal(hoveredBlockedTooltip), mouseX, mouseY);
+            context.setTooltipForNextFrame(Component.literal(hoveredBlockedTooltip), mouseX, mouseY);
         }
 
         if (maxScroll > 0) {
@@ -549,7 +553,7 @@ public class ChatWindowWidget {
                     if (hit) {
                         this.isFocused = true;
                         if (inputField != null) inputField.setFocused(false);
-                        searchField.mouseClicked(mouseX, mouseY, button);
+                        searchField.mouseClicked(new MouseButtonEvent(mouseX, mouseY, new MouseButtonInfo(button, 0)), false);
                         return true;
                     }
                 }
@@ -600,7 +604,7 @@ public class ChatWindowWidget {
             cm.markAsRead(playerName);
             focusInput();
             if (inputField != null) {
-                inputField.mouseClicked(mouseX, mouseY, button);
+                inputField.mouseClicked(new MouseButtonEvent(mouseX, mouseY, new MouseButtonInfo(button, 0)), false);
             }
 
             return true;
@@ -642,7 +646,7 @@ public class ChatWindowWidget {
                 toggleSearch();
                 return true;
             }
-            return searchField.keyPressed(keyCode, scanCode, modifiers);
+            return searchField.keyPressed(new KeyEvent(keyCode, scanCode, modifiers));
         }
 
         if ((modifiers & 2) != 0 && keyCode == 70) { // Ctrl + F
@@ -676,20 +680,20 @@ public class ChatWindowWidget {
         }
 
         inputField.setFocused(true);
-        return inputField.keyPressed(keyCode, scanCode, modifiers);
+        return inputField.keyPressed(new KeyEvent(keyCode, scanCode, modifiers));
     }
 
     public boolean charTyped(char chr, int modifiers) {
         if (!isFocused()) return false;
         if (searchOpen && searchField != null && searchField.isFocused()) {
-            return searchField.charTyped(chr, modifiers);
+            return searchField.charTyped(new CharacterEvent(chr));
         }
         if (inputField == null) return false;
         if (RetroChatConfig.getInstance().isPlayerBlocked(playerName)) {
             return false;
         }
         inputField.setFocused(true);
-        return inputField.charTyped(chr, modifiers);
+        return inputField.charTyped(new CharacterEvent(chr));
     }
 
     public boolean isSearchFocused() {
@@ -741,7 +745,7 @@ public class ChatWindowWidget {
         if (RetroChatConfig.getInstance().isPlayerBlocked(playerName)) {
             Minecraft client = Minecraft.getInstance();
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§c[RetroChat] " + LanguageManager.get("chat.player_blocked")), false);
+                client.player.sendSystemMessage(Component.literal("\u00a7c[RetroChat] " + LanguageManager.get("chat.player_blocked")));
             }
             inputField.setValue("");
             return;
@@ -763,3 +767,4 @@ public class ChatWindowWidget {
         focusInput();
     }
 }
+

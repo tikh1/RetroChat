@@ -234,7 +234,7 @@ public class RetroChatClientEventHandler {
         if (client.level == null) return;
         Screen screen = event.getScreen();
         if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return;
-        if (RetroChatOverlay.getInstance().charTyped(event.getCodePoint(), event.getModifiers())) {
+        if (RetroChatOverlay.getInstance().charTyped((char) event.getCodePoint(), 0)) {
             event.setCanceled(true);
         }
     }

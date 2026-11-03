@@ -2,7 +2,7 @@ package com.sen.modid.ui;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.util.Mth;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class AsciiEmojiPicker {
     private int selectedCategory = 0;
     private int scrollOffset = 0;
 
-    public void render(GuiGraphics context, Font font, int mouseX, int mouseY, int x, int y, int width, int height) {
+    public void render(GuiGraphicsExtractor context, Font font, int mouseX, int mouseY, int x, int y, int width, int height) {
         // Draw solid opaque panel background and border
         context.fill(x, y, x + width, y + height, 0xFF121A14);
         GuiUtils.drawBeveledBox(context, x, y, width, height, 0xFF121A14, GuiUtils.WINDOW_BORDER_LIGHT, GuiUtils.WINDOW_BORDER_DARK);
@@ -44,13 +44,13 @@ public class AsciiEmojiPicker {
 
         // Header
         GuiUtils.drawWindowHeader(context, x + 1, y + 1, width - 2, 13, true);
-        context.drawString(font, "ASCII Emojis", x + 4, y + 3, 0xFFFFFFFF, true);
+        context.text(font, "ASCII Emojis", x + 4, y + 3, 0xFFFFFFFF, true);
 
         // Close button
         int closeX = x + width - 12;
         int closeY = y + 2;
         boolean closeHover = mouseX >= closeX && mouseX <= closeX + 9 && mouseY >= closeY && mouseY <= closeY + 9;
-        GuiUtils.drawCloseButton(context, closeX, closeY, 9, 9, closeHover);
+        drawCloseButton(context, closeX, closeY, 9, 9, closeHover);
 
         // Category tabs
         int tabY = y + 15;
@@ -66,7 +66,7 @@ public class AsciiEmojiPicker {
                 context.fill(tx, tabY + tabH - 1, tx + tabW - 1, tabY + tabH, 0xFF8AE0A4);
             }
             int textW = font.width(CATEGORIES[i]);
-            context.drawString(font, CATEGORIES[i], tx + (tabW - 1 - textW) / 2, tabY + 3, active ? 0xFFFFFFFF : 0xFFAAAAAA, false);
+            context.text(font, CATEGORIES[i], tx + (tabW - 1 - textW) / 2, tabY + 3, active ? 0xFFFFFFFF : 0xFFAAAAAA, false);
         }
 
         // Emoji grid area
@@ -110,7 +110,7 @@ public class AsciiEmojiPicker {
             int tx = ix + (itemW - textW) / 2;
             int ty = iy + (itemH - font.lineHeight) / 2 + 1;
             int textColor = itemHover ? GuiUtils.ORANGE_ACCENT_HOVER : 0xFFFFFFFF;
-            context.drawString(font, emoji, tx, ty, textColor, false);
+            context.text(font, emoji, tx, ty, textColor, false);
         }
 
         context.disableScissor();
@@ -125,6 +125,18 @@ public class AsciiEmojiPicker {
             context.fill(sbX, sbY, sbX + 2, sbY + sbH, 0x55000000);
             context.fill(sbX, thumbY, sbX + 2, thumbY + thumbH, 0xFFAAAAAA);
         }
+    }
+
+    private void drawCloseButton(GuiGraphicsExtractor context, int x, int y, int width, int height, boolean hovered) {
+        GuiUtils.drawButtonBox(context, x, y, width, height, hovered);
+        int cx = x + width / 2;
+        int cy = y + height / 2;
+        int color = hovered ? GuiUtils.ORANGE_ACCENT_HOVER : 0xFFB8D5C0;
+        context.fill(cx - 2, cy - 2, cx - 1, cy - 1, color);
+        context.fill(cx + 1, cy - 2, cx + 2, cy - 1, color);
+        context.fill(cx - 1, cy - 1, cx + 1, cy + 1, color);
+        context.fill(cx - 2, cy + 1, cx - 1, cy + 2, color);
+        context.fill(cx + 1, cy + 1, cx + 2, cy + 2, color);
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button, int x, int y, int width, int height,

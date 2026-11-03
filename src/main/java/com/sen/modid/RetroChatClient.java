@@ -9,6 +9,7 @@ import com.sen.modid.ui.RetroChatOverlayScreen;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -47,7 +48,7 @@ public class RetroChatClient {
         NeoForge.EVENT_BUS.addListener(this::onClientTick);
         NeoForge.EVENT_BUS.register(new RetroChatClientEventHandler());
 
-        LOGGER.info("[RetroChat] Initialized successfully on NeoForge 1.21.1!");
+        LOGGER.info("[RetroChat] Initialized successfully on NeoForge 26.1!");
     }
 
     private void registerKeyMappings(RegisterKeyMappingsEvent event) {
@@ -55,7 +56,7 @@ public class RetroChatClient {
             "key.retrochat.toggle",
             InputConstants.Type.KEYSYM,
             InputConstants.UNKNOWN.getValue(),
-            "category.retrochat"
+            KeyMapping.Category.register(Identifier.parse("retrochat:category"))
         );
         event.register(toggleChatKey);
     }
