@@ -48,15 +48,15 @@ public class RetroChatClient {
         NeoForge.EVENT_BUS.addListener(this::onClientTick);
         NeoForge.EVENT_BUS.register(new RetroChatClientEventHandler());
 
-        LOGGER.info("[RetroChat] Initialized successfully on NeoForge 26.2!");
+        LOGGER.info("[RetroChat] Initialized successfully on NeoForge 26.3!");
     }
 
     private void registerKeyMappings(RegisterKeyMappingsEvent event) {
+        KeyMapping.Category category = KeyMapping.Category.register(Identifier.parse("retrochat:category"));
         toggleChatKey = new KeyMapping(
             "key.retrochat.toggle",
-            InputConstants.Type.KEYSYM,
             InputConstants.UNKNOWN.getValue(),
-            KeyMapping.Category.register(Identifier.parse("retrochat:category"))
+            category
         );
         event.register(toggleChatKey);
     }

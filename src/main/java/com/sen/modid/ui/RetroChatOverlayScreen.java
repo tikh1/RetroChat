@@ -65,7 +65,7 @@ public class RetroChatOverlayScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        if (RetroChatOverlay.getInstance().keyPressed(event.key(), event.scancode(), event.modifiers())) {
+        if (RetroChatOverlay.getInstance().keyPressed(event.key(), event.keycode(), event.modifiers())) {
             return true;
         }
 
