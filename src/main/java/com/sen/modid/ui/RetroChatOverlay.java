@@ -161,11 +161,10 @@ public class RetroChatOverlay {
         }
 
         openCandidates.sort((a, b) -> {
-            if (a.isFocused() != b.isFocused()) return a.isFocused() ? -1 : 1;
             boolean pinA = cm.isWindowPinned(a.getPlayerName());
             boolean pinB = cm.isWindowPinned(b.getPlayerName());
             if (pinA != pinB) return pinA ? -1 : 1;
-            return 0;
+            return a.getPlayerName().compareToIgnoreCase(b.getPlayerName());
         });
 
         List<ChatWindowWidget> finalOpenWindows = new ArrayList<>();
@@ -209,8 +208,15 @@ public class RetroChatOverlay {
             currentRightX = windowX - 4;
         }
 
-        for (int i = finalOpenWindows.size() - 1; i >= 0; i--) {
-            finalOpenWindows.get(i).render(context, mouseX, mouseY, delta);
+        for (ChatWindowWidget w : finalOpenWindows) {
+            if (!w.isFocused()) {
+                w.render(context, mouseX, mouseY, delta);
+            }
+        }
+        for (ChatWindowWidget w : finalOpenWindows) {
+            if (w.isFocused()) {
+                w.render(context, mouseX, mouseY, delta);
+            }
         }
 
         int tabY = screenHeight - 18;
@@ -255,7 +261,13 @@ public class RetroChatOverlay {
         }
 
         for (ChatWindowWidget window : windowWidgets.values()) {
-            if (window.mouseClicked(scaledMouseX, scaledMouseY, button)) {
+            if (window.isFocused() && window.mouseClicked(scaledMouseX, scaledMouseY, button)) {
+                return true;
+            }
+        }
+
+        for (ChatWindowWidget window : windowWidgets.values()) {
+            if (!window.isFocused() && window.mouseClicked(scaledMouseX, scaledMouseY, button)) {
                 for (ChatWindowWidget other : windowWidgets.values()) {
                     if (other != window) {
                         other.setFocused(false);
