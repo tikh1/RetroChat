@@ -8,14 +8,17 @@ It intercepts vanilla private messages (`/msg`, `/tell`, `/w`) at the client pac
 
 ## 🎮 Supported Versions & Branches
 
-RetroChat is available across modern Minecraft releases:
+RetroChat is available for **Fabric**, **Forge**, and **NeoForge** across modern Minecraft releases:
 
-| Minecraft Version | Fabric Loader | NeoForge / Forge | Branch |
-| :--- | :---: | :---: | :--- |
-| **1.21.4** | ✅ Supported | ✅ Supported (NeoForge) | `fabric-1.21.4` / `neoforge-1.21.4` |
-| **1.21.3** | ✅ Supported | ✅ Supported (NeoForge) | `fabric-1.21.3` / `neoforge-1.21.3` |
-| **1.21.1** | ✅ Supported | ✅ Supported (NeoForge) | `fabric-1.21.1` / `neoforge-1.21.1` |
-| **1.20.1** | ✅ Supported | ⏳ In Progress (Forge) | `fabric-1.20.1` |
+| Minecraft Version | Fabric Loader | Forge Loader | NeoForge Loader | Branch |
+| :--- | :---: | :---: | :---: | :--- |
+| **26.3** | ✅ Supported | ✅ Supported | ✅ Supported | `fabric-26.3` / `forge-26.3` / `neoforge-26.3` |
+| **26.2** | ✅ Supported | ✅ Supported | ✅ Supported | `fabric-26.2` / `forge-26.2` / `neoforge-26.2` |
+| **26.1** | ✅ Supported | ✅ Supported | ✅ Supported | `fabric-26.1` / `forge-26.1` / `neoforge-26.1` |
+| **1.21.4** | ✅ Supported | ✅ Supported | ✅ Supported | `fabric-1.21.4` / `forge-1.21.4` / `neoforge-1.21.4` |
+| **1.21.3** | ✅ Supported | ✅ Supported | ✅ Supported | `fabric-1.21.3` / `forge-1.21.3` / `neoforge-1.21.3` |
+| **1.21.1** | ✅ Supported | ✅ Supported | ✅ Supported | `fabric-1.21.1` / `forge-1.21.1` / `neoforge-1.21.1` |
+| **1.20.1** | ✅ Supported | ✅ Supported | — | `fabric-1.20.1` / `forge-1.20.1` |
 
 ---
 
@@ -59,7 +62,7 @@ RetroChat is available across modern Minecraft releases:
   - Everything stays right where you left it across sessions.
 
 - **Config Screen & Mod Menu Integration**:
-  - Accessible in-game via **ModMenu** (Fabric) and the **Mods Screen** (NeoForge).
+  - Accessible in-game via **ModMenu** (Fabric) and the **Mods Screen** (Forge / NeoForge).
   - Master mod toggle button and hide DMs in vanilla chat toggle.
   - Customize GUI scaling (50% to 150%) and window dimensions with live preview.
   - Player blocklist (case-insensitive blocking with instant suppression).
