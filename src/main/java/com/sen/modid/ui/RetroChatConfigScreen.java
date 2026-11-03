@@ -154,7 +154,7 @@ public class RetroChatConfigScreen extends Screen {
         File langDir = FabricLoader.getInstance().getConfigDir().resolve("retrochat").resolve("lang").toFile();
         addRenderableWidget(Button.builder(Component.literal("?"), b -> {
             if (langDir.exists()) {
-                Util.getPlatform().openFile(langDir);
+                com.mojang.blaze3d.Blaze3D.openPath(langDir.toPath());
             }
         })
         .tooltip(Tooltip.create(Component.literal(LanguageManager.get("config.language_help"))))

@@ -231,6 +231,6 @@ public class RetroChatClient implements ClientModInitializer {
             ConversationManager.getInstance().resetScope();
         });
 
-        LOGGER.info("[RetroChat] Initialized successfully on Fabric 26.2!");
+        LOGGER.info("[RetroChat] Initialized successfully on Fabric 26.3!");
     }
 }

@@ -125,7 +125,7 @@ public class RetroChatOverlay {
     }
 
     public boolean onKeyPressed(KeyEvent event) {
-        return keyPressed(event.key(), event.scancode(), event.modifiers());
+        return keyPressed(event.key(), event.keycode(), event.modifiers());
     }
 
     public boolean onCharTyped(CharacterEvent event) {
