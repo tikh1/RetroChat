@@ -4,9 +4,9 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.sen.modid.config.RetroChatConfig;
 import com.sen.modid.manager.ConversationManager;
 import com.sen.modid.model.DirectMessage;
-import com.sen.modid.ui.RetroChatConfigScreen;
 import com.sen.modid.ui.RetroChatOverlay;
 import com.sen.modid.ui.RetroChatOverlayScreen;
+import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -188,7 +188,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return;
         Screen screen = event.getScreen();
-        if (!(screen instanceof RetroChatConfigScreen) && !(screen instanceof RetroChatOverlayScreen)) {
+        if (screen instanceof ChatScreen) {
             RetroChatOverlay.getInstance().render(event.getGuiGraphics(), event.getMouseX(), event.getMouseY(), event.getPartialTick());
         }
     }
@@ -199,7 +199,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return false;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return false;
+        if (!(screen instanceof ChatScreen)) return false;
         return RetroChatOverlay.getInstance().mouseClicked(event.getMouseX(), event.getMouseY(), event.getInfo().button());
     }
 
@@ -209,7 +209,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return false;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return false;
+        if (!(screen instanceof ChatScreen)) return false;
         return RetroChatOverlay.getInstance().mouseReleased(event.getMouseX(), event.getMouseY(), event.getButton());
     }
 
@@ -219,7 +219,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return false;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return false;
+        if (!(screen instanceof ChatScreen)) return false;
         return RetroChatOverlay.getInstance().mouseDragged(event.getMouseX(), event.getMouseY(), event.getMouseButton(), event.getDragX(), event.getDragY());
     }
 
@@ -229,7 +229,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return false;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return false;
+        if (!(screen instanceof ChatScreen)) return false;
         return RetroChatOverlay.getInstance().mouseScrolled(event.getMouseX(), event.getMouseY(), event.getDeltaX(), event.getDeltaY());
     }
 
@@ -239,7 +239,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return false;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return false;
+        if (!(screen instanceof ChatScreen)) return false;
         return RetroChatOverlay.getInstance().onKeyPressed(event.getInfo());
     }
 
@@ -249,7 +249,7 @@ public class RetroChatClientEventHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null) return false;
         Screen screen = event.getScreen();
-        if (screen instanceof RetroChatConfigScreen || screen instanceof RetroChatOverlayScreen) return false;
+        if (!(screen instanceof ChatScreen)) return false;
         return RetroChatOverlay.getInstance().onCharTyped(event.getInfo());
     }
 }
