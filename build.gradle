@@ -16,6 +16,12 @@ java {
     toolchain.languageVersion = JavaLanguageVersion.of(21)
 }
 
+sourceSets {
+    main {
+        output.resourcesDir = layout.buildDirectory.dir("classes/java/main")
+    }
+}
+
 minecraft {
     mappings channel: 'official', version: project.minecraft_version
     reobf = false
