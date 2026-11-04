@@ -90,6 +90,23 @@ RetroChat is available for **Fabric**, **Forge**, and **NeoForge** across modern
 
 ---
 
+### 🌍 Multi-Language Support
+
+RetroChat includes built-in translations for six languages:
+
+| Language | Translation |
+|---|---|
+| 🇬🇧 English | English |
+| 🇹🇷 Turkish | Türkçe |
+| 🇩🇪 German | Deutsch |
+| 🇷🇺 Russian | Русский |
+| 🇪🇸 Spanish | Español |
+| 🇫🇷 French | Français |
+
+Custom translations can also be added or modified through JSON language files.
+
+---
+
 ## 🛠️ Building from Source
 
 To compile the mod from source using the Gradle wrapper:
